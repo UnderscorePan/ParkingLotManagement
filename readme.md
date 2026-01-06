@@ -56,6 +56,8 @@ com.parkingLot.utils
 
 ## Plugins and libraries to use
 
+(These are from IntelliJ IDEA Community Edition)
+
 - Database Navigator
 - PlantUML4IDEA (requires graphviz to render)
 - SQLite JDBC driver (needed for SQLite)
