@@ -1,0 +1,53 @@
+@startuml
+allowmixing
+title ParkingLotManagement - src overview
+
+package "com.parkingLot" {
+  class Main {
+    +main(String[] args)
+  }
+
+  package controllers {
+    note "empty package (controllers)" as C1
+  }
+
+  package models {
+    package fines {
+      note "empty" as F1
+    }
+    package spots {
+      note "empty" as S1
+    }
+    package vehicles {
+      note "empty" as V1
+    }
+  }
+
+  package utils {
+    note "empty package (utils)" as U1
+  }
+
+  package views {
+    class MainFrame
+  }
+
+  package database {
+    database "parking_lot.db" as DB
+  }
+}
+
+Main --> DB : "jdbc:sqlite:database/parking_lot.db"
+Main --> "org.sqlite.JDBC" : loads driver
+Main --> MainFrame : "opens UI (placeholder)"
+
+note right of DB
+  DB is a SQLite database file located at src/com/parkingLot/database/parking_lot.db
+end note
+
+legend right
+  |= symbol |= meaning |
+  | Main | Application entry point |
+  | MainFrame | Swing (form) generated UI class |
+end legend
+
+@enduml
