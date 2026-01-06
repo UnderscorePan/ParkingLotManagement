@@ -9,7 +9,7 @@ CCP6224 - Object-Oriented Analysis and Design
 - Hew Wee Bo
 - Shanjif Cakravathi
 - Merey Abilkhan
-- tba
+- Liaw Yong Loon
 
 ---
 
