@@ -13,6 +13,28 @@ CCP6224 - Object-Oriented Analysis and Design
 
 ---
 
+### Base Package
+
+All packages use the base: `com.parkingLot`
+
+### Required Packages
+
+Create these packages in your IntelliJ project (right-click `src` → New → Package):
+
+```
+com.parkingLot.models
+com.parkingLot.models.vehicles
+com.parkingLot.models.spots
+com.parkingLot.models.fines
+com.parkingLot.controllers
+com.parkingLot.views
+com.parkingLot.database
+com.parkingLot.utils
+
+```
+
+---
+
 ## Packages
 
 - `models/`: Your core classes (ParkingLot, Floor, Vehicle, etc.)
