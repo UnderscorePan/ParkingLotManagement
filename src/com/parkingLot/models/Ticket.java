@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

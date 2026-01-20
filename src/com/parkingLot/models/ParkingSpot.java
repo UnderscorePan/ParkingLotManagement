@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models;
 
 public class ParkingSpot {
     private String spotId;

@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models.spots;
 
 public enum SpotType {
     COMPACT(2.0),

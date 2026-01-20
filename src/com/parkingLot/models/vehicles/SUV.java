@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models.vehicels;
 
 public class SUV extends Vehicle {
     public SUV(String licensePlate) {

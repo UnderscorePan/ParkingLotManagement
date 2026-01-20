@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models.fines;
 
 public enum PaymentType {
     CASH, 

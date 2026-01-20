@@ -1,4 +1,4 @@
-package com.parkingLot.backend;
+package com.parkingLot.models.vehicels;
 import java.time.LocalDateTime;
 
 public abstract class Vehicle {
