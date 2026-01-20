@@ -1,4 +1,6 @@
-package com.parkingLot.models.vehicels;
+package com.parkingLot.models.vehicles;
+
+import com.parkingLot.models.spots.SpotType;
 
 public class Motorcycle extends Vehicle {
     public Motorcycle(String licensePlate) {

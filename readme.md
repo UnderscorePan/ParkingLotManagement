@@ -23,6 +23,7 @@ Create these packages in your IntelliJ project (right-click `src` → New → Pa
 
 ```
 com.parkingLot.models
+com.parkingLot.models.tests
 com.parkingLot.models.vehicles
 com.parkingLot.models.spots
 com.parkingLot.models.fines
@@ -45,6 +46,7 @@ com.parkingLot.utils
 - `views/`: Swing GUI classes
 - `database/`: SQLite connection and queries
 - `utils/`: Helper classes (date calculations, ID generation, etc.)
+- `tests/`: For testing all modules without GUI
 
 ---
 

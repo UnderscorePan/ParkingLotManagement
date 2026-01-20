@@ -1,4 +1,4 @@
-package com.parkingLot.models.vehicels;
+package com.parkingLot.models.vehicles;
 
 public enum VehicleType {
     MOTORCYCLE,

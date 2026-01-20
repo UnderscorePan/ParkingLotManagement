@@ -1,4 +1,7 @@
 package com.parkingLot.models;
+
+import com.parkingLot.models.spots.SpotStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,14 +31,15 @@ public class Floor {
     public double getOccupancyRate() {
         if (parkingSpots.isEmpty()) return 0.0;
         long occupied = parkingSpots.stream()
-            .filter(spot -> spot.getStatus() == SpotStatus.OCCUPIED)
-            .count();
+                .filter(spot -> spot.getStatus() == SpotStatus.OCCUPIED)
+                .count();
         return (occupied * 100.0) / parkingSpots.size();
     }
 
     public int getFloorNumber() {
         return floorNumber;
     }
+
     public List<ParkingSpot> getParkingSpots() {
         return parkingSpots;
     }

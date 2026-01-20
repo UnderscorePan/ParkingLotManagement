@@ -1,5 +1,10 @@
 package com.parkingLot.models;
 
+import com.parkingLot.models.spots.SpotStatus;
+import com.parkingLot.models.spots.SpotType;
+import com.parkingLot.models.vehicles.Vehicle;
+import com.parkingLot.models.vehicles.VehicleType;
+
 public class ParkingSpot {
     private String spotId;
     private int floor;
@@ -54,24 +59,31 @@ public class ParkingSpot {
     public String getSpotId() {
         return spotId;
     }
+
     public SpotType getSpotType() {
         return spotType;
     }
+
     public SpotStatus getStatus() {
         return status;
     }
+
     public int getFloor() {
         return floor;
     }
+
     public int getRow() {
         return row;
     }
+
     public int getSpotNumber() {
         return spotNumber;
     }
+
     public Vehicle getCurrentVehicle() {
         return currentVehicle;
     }
+
     public double getHourlyRate() {
         return hourlyRate;
     }

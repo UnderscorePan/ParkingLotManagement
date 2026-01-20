@@ -1,4 +1,7 @@
-package com.parkingLot.models.vehicels;
+package com.parkingLot.models.vehicles;
+
+import com.parkingLot.models.spots.SpotType;
+
 import java.time.LocalDateTime;
 
 public abstract class Vehicle {
@@ -18,24 +21,31 @@ public abstract class Vehicle {
     public String getLicensePlate() {
         return licensePlate;
     }
+
     public VehicleType getType() {
         return type;
     }
+
     public LocalDateTime getEntryTime() {
         return entryTime;
     }
+
     public void setEntryTime(LocalDateTime entryTime) {
         this.entryTime = entryTime;
     }
+
     public LocalDateTime getExitTime() {
         return exitTime;
     }
+
     public void setExitTime(LocalDateTime exitTime) {
         this.exitTime = exitTime;
     }
+
     public String getAssignedSpotId() {
         return assignedSpotId;
     }
+
     public void setAssignedSpotId(String assignedSpotId) {
         this.assignedSpotId = assignedSpotId;
     }

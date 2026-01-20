@@ -9,5 +9,6 @@ public class FixedFineStrategy implements FineStrategy {
     @Override
     public double calculateFine(Duration overstay) {
         Objects.requireNonNull(overstay);
+        return FIXED_FINE;
     }
 }

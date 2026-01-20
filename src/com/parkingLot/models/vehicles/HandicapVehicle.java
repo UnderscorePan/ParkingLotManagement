@@ -1,4 +1,6 @@
-package com.parkingLot.models.vehicels;
+package com.parkingLot.models.vehicles;
+
+import com.parkingLot.models.spots.SpotType;
 
 public class HandicapVehicle extends Vehicle {
     public HandicapVehicle(String licensePlate) {
@@ -10,4 +12,3 @@ public class HandicapVehicle extends Vehicle {
         return true;
     }
 }
-
