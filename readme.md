@@ -77,3 +77,79 @@ com.parkingLot.utils
 - [ ] Fine calculation (3 schemes)
 - [ ] Payment processing
 - [ ] Admin and reporting panels
+
+
+## Maven Quick Start Guide
+
+## Prerequisites
+- Java 17 or higher
+- Maven 3.6+ installed
+
+## Common Maven Commands
+
+### 1. Clean and Compile
+```bash
+mvn clean compile
+```
+Removes old build files and compiles all source code.
+
+### 2. Run Tests
+```bash
+# Run the fine system test
+mvn exec:java -Dexec.mainClass="com.parkingLot.tests.FineTester"
+
+# Run vehicle test
+mvn exec:java -Dexec.mainClass="com.parkingLot.tests.VehicleTester"
+
+# Run main application
+mvn exec:java -Dexec.mainClass="com.parkingLot.Main"
+```
+
+### 3. Package JAR
+```bash
+mvn clean package
+```
+Creates executable JAR in `target/` directory.
+
+### 4. Clean Build Directory
+```bash
+mvn clean
+```
+
+## Project Structure
+```
+ParkingLotManagement/
+├── pom.xml                    # Maven configuration
+├── src/                       # Source code
+│   └── com/parkingLot/
+│       ├── Main.java
+│       ├── models/
+│       ├── controllers/
+│       ├── views/
+│       ├── database/
+│       ├── utils/
+│       └── tests/
+├── target/                    # Compiled output (auto-generated)
+└── lib/                       # Old manual JAR (can be removed)
+```
+
+## Dependencies
+All dependencies are automatically downloaded by Maven:
+- **SQLite JDBC 3.47.1.0** - Database driver
+
+## First Time Setup
+1. Open terminal in project directory
+2. Run: `mvn clean compile`
+3. Maven will download all dependencies
+4. Ready to develop!
+
+## IntelliJ IDEA Integration
+- IntelliJ automatically detects `pom.xml`
+- Click "Import" when prompted
+- All dependencies will be configured automatically
+- Use "Maven" tab on right side for commands
+
+## Notes
+- The `lib/` folder with manual JARs is no longer needed
+- Maven stores dependencies in `~/.m2/repository/`
+- `target/` folder is ignored by git (build output)
