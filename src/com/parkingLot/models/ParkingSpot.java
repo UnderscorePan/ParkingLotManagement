@@ -1,11 +1,15 @@
 package com.parkingLot.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.parkingLot.models.components.ParkingComponent;
 import com.parkingLot.models.spots.SpotStatus;
 import com.parkingLot.models.spots.SpotType;
 import com.parkingLot.models.vehicles.Vehicle;
 import com.parkingLot.models.vehicles.VehicleType;
 
-public class ParkingSpot {
+public class ParkingSpot implements ParkingComponent {
     private String spotId;
     private int floor;
     private int row;
@@ -86,5 +90,36 @@ public class ParkingSpot {
 
     public double getHourlyRate() {
         return hourlyRate;
+    }
+
+    // ============ COMPOSITE INTERFACE IMPLEMENTATIONS ============
+    @Override
+    public List<ParkingSpot> getAvailableSpots() {
+        List<ParkingSpot> result = new ArrayList<>();
+        if (this.isAvailable()) {
+            result.add(this);
+        }
+        return result;
+    }
+
+    @Override
+    public double getOccupancyRate() {
+        // Leaf node: either 0% (available) or 100% (occupied)
+        return this.isAvailable() ? 0.0 : 100.0;
+    }
+
+    @Override
+    public int getTotalSpots() {
+        return 1; // Leaf node always has exactly 1 spot
+    }
+
+    @Override
+    public int getOccupiedSpots() {
+        return this.isAvailable() ? 0 : 1;
+    }
+
+    @Override
+    public boolean isLeaf() {
+        return true; // ParkingSpot is always a leaf node
     }
 }
