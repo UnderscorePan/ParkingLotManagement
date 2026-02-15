@@ -21,18 +21,18 @@ public class ParkingSpotController {
             pstmt.setString(1, spot.getSpotId());
             pstmt.setString(2, lotId);
             pstmt.setInt(3, spot.getFloor());
-            pstmt.setString(4, String.valueOf(spot.getRow()));
+            pstmt.setInt(4, spot.getRow());
             pstmt.setInt(5, spot.getSpotNumber());
             pstmt.setString(6, spot.getSpotType().toString());
             pstmt.setInt(7, spot.getStatus().ordinal());
             pstmt.setString(8, null);
             
             pstmt.executeUpdate();
-            System.out.println("✅ Parking spot " + spot.getSpotId() + " saved to database");
+            System.out.println("Parking spot " + spot.getSpotId() + " saved to database");
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error saving parking spot: " + e.getMessage());
+            System.err.println("Error saving parking spot: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -51,15 +51,15 @@ public class ParkingSpotController {
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
                 String statusStr = (status == 0) ? "AVAILABLE" : "OCCUPIED";
-                System.out.println("✅ Spot " + spotId + " updated to " + statusStr);
+                System.out.println("Spot " + spotId + " updated to " + statusStr);
                 return true;
             } else {
-                System.err.println("⚠️ No spot found with ID: " + spotId);
+                System.err.println("No spot found with ID: " + spotId);
                 return false;
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error updating spot status: " + e.getMessage());
+            System.err.println("Error updating spot status: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -75,7 +75,7 @@ public class ParkingSpotController {
             return pstmt.executeQuery();
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving parking spot: " + e.getMessage());
+            System.err.println("Error retrieving parking spot: " + e.getMessage());
             return null;
         }
     }
@@ -89,7 +89,7 @@ public class ParkingSpotController {
             return stmt.executeQuery(sql);
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving all spots: " + e.getMessage());
+            System.err.println("Error retrieving all spots: " + e.getMessage());
             return null;
         }
     }
@@ -104,15 +104,15 @@ public class ParkingSpotController {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                System.out.println("✅ Parking spot " + spotId + " deleted from database");
+                System.out.println("Parking spot " + spotId + " deleted from database");
                 return true;
             } else {
-                System.err.println("⚠️ No spot found with ID: " + spotId);
+                System.err.println("No spot found with ID: " + spotId);
                 return false;
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting parking spot: " + e.getMessage());
+            System.err.println("Error deleting parking spot: " + e.getMessage());
             return false;
         }
     }
@@ -132,7 +132,7 @@ public class ParkingSpotController {
             return false;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking spot existence: " + e.getMessage());
+            System.err.println("Error checking spot existence: " + e.getMessage());
             return false;
         }
     }
@@ -150,7 +150,7 @@ public class ParkingSpotController {
                 java.util.Map<String, Object> spot = new java.util.HashMap<>();
                 spot.put("spot_id", rs.getString("spot_id"));
                 spot.put("floor_number", rs.getInt("floor_number"));
-                spot.put("row_number", rs.getString("row_number"));
+                spot.put("row_number", rs.getInt("row_number"));
                 spot.put("spot_number", rs.getInt("spot_number"));
                 spot.put("spot_type", rs.getString("spot_type"));
                 spot.put("status", rs.getInt("status"));
@@ -159,7 +159,7 @@ public class ParkingSpotController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving spots for display: " + e.getMessage());
+            System.err.println("Error retrieving spots for display: " + e.getMessage());
         }
         
         return spots;
@@ -179,7 +179,7 @@ public class ParkingSpotController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking spot status: " + e.getMessage());
+            System.err.println("Error checking spot status: " + e.getMessage());
         }
         
         return false;

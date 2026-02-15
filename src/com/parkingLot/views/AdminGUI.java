@@ -25,6 +25,7 @@ import com.parkingLot.controllers.ParkingSpotController;
 import com.parkingLot.controllers.VehicleController;
 import com.parkingLot.models.ParkingSpot;
 import com.parkingLot.models.spots.SpotType;
+import com.parkingLot.utils.IdGenerator;
 
 public class AdminGUI extends JFrame {
     private static final String LOT_ID = "LOT-001";
@@ -45,25 +46,22 @@ public class AdminGUI extends JFrame {
     private JComboBox<SpotType> spotTypeCombo;
     
     public AdminGUI() {
-        // Initialize controllers
+
         floorController = new FloorController();
         spotController = new ParkingSpotController();
         vehicleController = new VehicleController();
         
-        // Setup GUI
         setTitle("Admin Panel - Parking Lot Management");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         
-        // Create panels
         add(createTopPanel(), BorderLayout.NORTH);
         add(createCenterPanel(), BorderLayout.CENTER);
         add(createBottomPanel(), BorderLayout.SOUTH);
         
         setLocationRelativeTo(null);
         
-        // Initial refresh
         refreshAllData();
     }
 
@@ -72,7 +70,6 @@ public class AdminGUI extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Spot Management Panel
         JPanel spotPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         spotPanel.setBorder(BorderFactory.createTitledBorder("Parking Spot Management"));
         
@@ -115,10 +112,10 @@ public class AdminGUI extends JFrame {
                     rowField.setText("");
                     spotNumField.setText("");
                 } catch (NumberFormatException ex) {
-                    showMessage("❌ ERROR: Invalid input values!");
+                    showMessage("ERROR: Invalid input values!");
                 }
             } else {
-                showMessage("❌ ERROR: All fields are required!");
+                showMessage("ERROR: All fields are required!");
             }
         });
         spotPanel.add(addSpotButton);
@@ -139,7 +136,6 @@ public class AdminGUI extends JFrame {
     private JPanel createCenterPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3, 10, 10));
         
-        // Floors Table
         String[] floorColumns = {"Floor", "Total Spots", "Occupied", "Available"};
         floorsTableModel = new DefaultTableModel(floorColumns, 0) {
             @Override
@@ -152,7 +148,6 @@ public class AdminGUI extends JFrame {
         floorsScroll.setBorder(BorderFactory.createTitledBorder("Floors Summary"));
         panel.add(floorsScroll);
         
-        // Spots Table
         String[] spotColumns = {"Spot ID", "Floor", "Row", "Spot #", "Type", "Status"};
         spotsTableModel = new DefaultTableModel(spotColumns, 0) {
             @Override
@@ -165,7 +160,6 @@ public class AdminGUI extends JFrame {
         spotsScroll.setBorder(BorderFactory.createTitledBorder("Parking Spots"));
         panel.add(spotsScroll);
         
-        // Vehicles Table with VIP Management
         String[] vehicleColumns = {"License Plate", "Vehicle Type", "VIP Status"};
         vehiclesTableModel = new DefaultTableModel(vehicleColumns, 0) {
             @Override
@@ -184,14 +178,12 @@ public class AdminGUI extends JFrame {
     private JPanel createBottomPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         
-        // Output area
         outputArea = new JTextArea(8, 80);
         outputArea.setEditable(false);
         JScrollPane outputScroll = new JScrollPane(outputArea);
         outputScroll.setBorder(BorderFactory.createTitledBorder("System Messages"));
         panel.add(outputScroll, BorderLayout.CENTER);
         
-        // Control buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         
         JButton refreshButton = new JButton("Refresh All Data");
@@ -218,19 +210,17 @@ public class AdminGUI extends JFrame {
     
     private void addParkingSpot(int floorNumber, String spotId, int row, int spotNum, SpotType type) {
         if (spotController.spotExists(spotId)) {
-            showMessage("❌ ERROR: Spot ID " + spotId + " already exists!");
+            showMessage("ERROR: Spot ID " + spotId + " already exists!");
             return;
         }
         
-        // Create parking spot
         ParkingSpot spot = new ParkingSpot(spotId, floorNumber, row, spotNum, type);
         
-        // Save to database
         if (spotController.saveParkingSpot(spot, LOT_ID)) {
-            showMessage("✅ SUCCESS: Parking spot " + spotId + " added to Floor " + floorNumber);
+            showMessage("SUCCESS: Parking spot " + spotId + " added to Floor " + floorNumber);
             refreshAllData();
         } else {
-            showMessage("❌ ERROR: Failed to add parking spot!");
+            showMessage("ERROR: Failed to add parking spot!");
         }
     }
     
@@ -256,10 +246,10 @@ public class AdminGUI extends JFrame {
         
         if (confirm == JOptionPane.YES_OPTION) {
             if (spotController.deleteParkingSpot(spotId)) {
-                showMessage("✅ SUCCESS: Parking spot " + spotId + " removed");
+                showMessage("SUCCESS: Parking spot " + spotId + " removed");
                 refreshAllData();
             } else {
-                showMessage("❌ ERROR: Failed to remove parking spot!");
+                showMessage("ERROR: Failed to remove parking spot!");
             }
         }
     }
@@ -289,10 +279,10 @@ public class AdminGUI extends JFrame {
         
         if (confirm == JOptionPane.YES_OPTION) {
             if (floorController.deleteFloorSpots(floorNumber)) {
-                showMessage("✅ SUCCESS: Floor " + floorNumber + " removed");
+                showMessage("SUCCESS: Floor " + floorNumber + " removed");
                 refreshAllData();
             } else {
-                showMessage("❌ ERROR: Failed to remove floor!");
+                showMessage("ERROR: Failed to remove floor!");
             }
         }
     }
@@ -311,10 +301,10 @@ public class AdminGUI extends JFrame {
         String newStatusStr = (newVipStatus == 1) ? "VIP" : "Regular";
         
         if (vehicleController.updateVipStatus(licensePlate, newVipStatus)) {
-            showMessage("✅ SUCCESS: Vehicle " + licensePlate + " updated to " + newStatusStr);
+            showMessage("SUCCESS: Vehicle " + licensePlate + " updated to " + newStatusStr);
             refreshAllData();
         } else {
-            showMessage("❌ ERROR: Failed to update VIP status!");
+            showMessage("ERROR: Failed to update VIP status!");
         }
     }
     
@@ -384,35 +374,33 @@ public class AdminGUI extends JFrame {
             return;
         }
         
-        // Add spots to floor 1
         for (int i = 1; i <= 5; i++) {
-            ParkingSpot spot = new ParkingSpot("F1-COMPACT-" + i, 1, 1, i, SpotType.COMPACT);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(1, 1, i), 1, 1, i, SpotType.COMPACT);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
         for (int i = 1; i <= 5; i++) {
-            ParkingSpot spot = new ParkingSpot("F1-REGULAR-" + i, 1, 2, i, SpotType.REGULAR);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(1, 2, i), 1, 2, i, SpotType.REGULAR);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
         for (int i = 1; i <= 2; i++) {
-            ParkingSpot spot = new ParkingSpot("F1-HANDICAP-" + i, 1, 3, i, SpotType.HANDICAP);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(1, 3, i), 1, 3, i, SpotType.HANDICAP);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
-        
-        // Add spots to floor 2
+
         for (int i = 1; i <= 5; i++) {
-            ParkingSpot spot = new ParkingSpot("F2-COMPACT-" + i, 2, 1, i, SpotType.COMPACT);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(2, 1, i), 2, 1, i, SpotType.COMPACT);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
         for (int i = 1; i <= 5; i++) {
-            ParkingSpot spot = new ParkingSpot("F2-REGULAR-" + i, 2, 2, i, SpotType.REGULAR);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(2, 2, i), 2, 2, i, SpotType.REGULAR);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
         for (int i = 1; i <= 2; i++) {
-            ParkingSpot spot = new ParkingSpot("F2-RESERVED-" + i, 2, 3, i, SpotType.RESERVED);
+            ParkingSpot spot = new ParkingSpot(IdGenerator.generateSpotId(2, 3, i), 2, 3, i, SpotType.RESERVED);
             spotController.saveParkingSpot(spot, LOT_ID);
         }
         
-        showMessage("✅ SUCCESS: Sample data initialized");
+        showMessage("SUCCESS: Sample data initialized");
         showMessage("Added 2 floors with multiple parking spots");
         refreshAllData();
     }

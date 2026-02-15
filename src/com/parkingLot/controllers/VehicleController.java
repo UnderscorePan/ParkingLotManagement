@@ -29,11 +29,11 @@ public class VehicleController {
             pstmt.setInt(5, 0);
             
             pstmt.executeUpdate();
-            System.out.println("✅ Vehicle " + vehicle.getLicensePlate() + " saved to database");
+            System.out.println("Vehicle " + vehicle.getLicensePlate() + " saved to database");
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error saving vehicle: " + e.getMessage());
+            System.err.println("Error saving vehicle: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -50,15 +50,15 @@ public class VehicleController {
             
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("✅ Vehicle " + licensePlate + " exit time updated");
+                System.out.println("Vehicle " + licensePlate + " exit time updated");
                 return true;
             } else {
-                System.err.println("⚠️ No vehicle found with plate: " + licensePlate);
+                System.err.println("No vehicle found with plate: " + licensePlate);
                 return false;
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error updating vehicle exit: " + e.getMessage());
+            System.err.println("Error updating vehicle exit: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -74,7 +74,7 @@ public class VehicleController {
             return pstmt.executeQuery();
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving vehicle: " + e.getMessage());
+            System.err.println("Error retrieving vehicle: " + e.getMessage());
             return null;
         }
     }
@@ -88,7 +88,7 @@ public class VehicleController {
             return stmt.executeQuery(sql);
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving active vehicles: " + e.getMessage());
+            System.err.println("Error retrieving active vehicles: " + e.getMessage());
             return null;
         }
     }
@@ -108,7 +108,7 @@ public class VehicleController {
             return false;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking vehicle existence: " + e.getMessage());
+            System.err.println("Error checking vehicle existence: " + e.getMessage());
             return false;
         }
     }
@@ -130,7 +130,7 @@ public class VehicleController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving vehicles for display: " + e.getMessage());
+            System.err.println("Error retrieving vehicles for display: " + e.getMessage());
         }
         
         return vehicles;
@@ -148,15 +148,15 @@ public class VehicleController {
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
                 String status = (isVip == 1) ? "VIP" : "Regular";
-                System.out.println("✅ Vehicle " + licensePlate + " updated to " + status);
+                System.out.println("Vehicle " + licensePlate + " updated to " + status);
                 return true;
             } else {
-                System.err.println("⚠️ No vehicle found with plate: " + licensePlate);
+                System.err.println("No vehicle found with plate: " + licensePlate);
                 return false;
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error updating VIP status: " + e.getMessage());
+            System.err.println("Error updating VIP status: " + e.getMessage());
             return false;
         }
     }

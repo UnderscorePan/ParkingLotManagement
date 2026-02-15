@@ -13,12 +13,12 @@ public class databaseConnection {
         try {
             Class.forName("org.sqlite.JDBC");
             conn = DriverManager.getConnection(URL);
-            System.out.println("✅ Database Connected Successfully!");
+            System.out.println("Database Connected Successfully!");
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ Error: SQLite Driver not found! Did you reload Maven?");
+            System.err.println("Error: SQLite Driver not found! Did you reload Maven?");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("❌ Error: Connection failed! " + e.getMessage());
+            System.err.println("Error: Connection failed! " + e.getMessage());
             e.printStackTrace();
         }
         return conn;
@@ -57,7 +57,7 @@ public class databaseConnection {
                     "spot_id TEXT PRIMARY KEY, " +
                     "lot_id TEXT, " +
                     "floor_number INTEGER, " +
-                    "row_number TEXT, " +
+                    "row_number INTEGER, " +
                     "spot_number INTEGER, " +
                     "spot_type TEXT, " +
                     "status INTEGER DEFAULT 0, " +
@@ -82,7 +82,7 @@ public class databaseConnection {
                     "transaction_date TEXT NOT NULL, " +
                     "FOREIGN KEY (plate_number) REFERENCES vehicles(plate_number))");
             
-            System.out.println("✅ Database tables initialized successfully!");
+            System.out.println("Database tables initialized successfully!");
         }
     }
     

@@ -28,11 +28,11 @@ public class ParkingHistoryController {
             pstmt.setString(3, spotId);
             
             pstmt.executeUpdate();
-            System.out.println("✅ Parking entry created for " + licensePlate);
+            System.out.println("Parking entry created for " + licensePlate);
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error creating parking entry: " + e.getMessage());
+            System.err.println("Error creating parking entry: " + e.getMessage());
             return false;
         }
     }
@@ -50,15 +50,15 @@ public class ParkingHistoryController {
             
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("✅ Parking exit completed for " + licensePlate);
+                System.out.println("Parking exit completed for " + licensePlate);
                 return true;
             } else {
-                System.err.println("⚠️ No active parking session found for: " + licensePlate);
+                System.err.println("No active parking session found for: " + licensePlate);
                 return false;
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error completing parking exit: " + e.getMessage());
+            System.err.println("Error completing parking exit: " + e.getMessage());
             return false;
         }
     }
@@ -83,7 +83,7 @@ public class ParkingHistoryController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting active parking session: " + e.getMessage());
+            System.err.println("Error getting active parking session: " + e.getMessage());
         }
         
         return null;
@@ -112,7 +112,7 @@ public class ParkingHistoryController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting active sessions: " + e.getMessage());
+            System.err.println("Error getting active sessions: " + e.getMessage());
         }
         
         return sessions;
@@ -132,7 +132,7 @@ public class ParkingHistoryController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking if vehicle is parked: " + e.getMessage());
+            System.err.println("Error checking if vehicle is parked: " + e.getMessage());
         }
         
         return false;

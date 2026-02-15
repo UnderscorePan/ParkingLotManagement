@@ -17,8 +17,8 @@ public class IdGenerator {
         return String.format("TKT-%s-%s", cleanPlate, timestamp.format(TIMESTAMP_FORMATTER));
     }
 
-    public static String generateSpotId(int floor, String row, int spotNumber) {
-        return String.format("F%d-%s-%02d", floor, row, spotNumber);
+    public static String generateSpotId(int floor, int row, int spotNumber) {
+        return String.format("F%d-R%d-%02d", floor, row, spotNumber);
     }
 
     public static String generateReceiptId(LocalDateTime timestamp) {

@@ -46,44 +46,38 @@ import com.parkingLot.models.vehicles.Motorcycle;
 import com.parkingLot.models.vehicles.SUV;
 import com.parkingLot.models.vehicles.Vehicle;
 import com.parkingLot.models.vehicles.VehicleType;
+import com.parkingLot.utils.IdGenerator;
 
 public class VehicleGUI extends JFrame {
     private ParkingLot parkingLot;
     private Map<String, Ticket> activeTickets;
     private Map<String, Vehicle> parkedVehicles;
     
-    // UI Components for Registration
     private JTable registeredVehiclesTable;
     private DefaultTableModel registeredVehiclesModel;
     private JTextField searchField;
     private JButton registerButton;
     private JButton enterParkingButton;
     
-    // UI Components for Active Parking
     private JTextArea outputArea;
     private JTable activeTicketsTable;
     private DefaultTableModel activeTicketsModel;
     
     public VehicleGUI() {
-        // Initialize data structures
         parkingLot = new ParkingLot("LOT-001");
         activeTickets = new HashMap<>();
         parkedVehicles = new HashMap<>();
         
-        // Initialize parking lot with some spots
         initializeParkingLot();
         
-        // Setup GUI
         setTitle("Vehicle Registration & Parking System");
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         
-        // Create panels
         add(createRegistrationPanel(), BorderLayout.NORTH);
         add(createCenterPanel(), BorderLayout.CENTER);
         
-        // Load registered vehicles and active parking sessions
         loadRegisteredVehicles();
         loadActiveParkingSessions();
         
@@ -93,15 +87,14 @@ public class VehicleGUI extends JFrame {
     private void initializeParkingLot() {
         Floor floor1 = new Floor(1);
         
-        // Add different types of parking spots
         for (int i = 1; i <= 5; i++) {
-            floor1.addParkingSpot(new ParkingSpot("F1-COMPACT-" + i, 1, 1, i, SpotType.COMPACT));
+            floor1.addParkingSpot(new ParkingSpot(IdGenerator.generateSpotId(1, 1, i), 1, 1, i, SpotType.COMPACT));
         }
         for (int i = 1; i <= 5; i++) {
-            floor1.addParkingSpot(new ParkingSpot("F1-REGULAR-" + i, 1, 2, i, SpotType.REGULAR));
+            floor1.addParkingSpot(new ParkingSpot(IdGenerator.generateSpotId(1, 2, i), 1, 2, i, SpotType.REGULAR));
         }
         for (int i = 1; i <= 2; i++) {
-            floor1.addParkingSpot(new ParkingSpot("F1-HANDICAP-" + i, 1, 3, i, SpotType.HANDICAP));
+            floor1.addParkingSpot(new ParkingSpot(IdGenerator.generateSpotId(1, 3, i), 1, 3, i, SpotType.HANDICAP));
         }
         
         parkingLot.addFloor(floor1);
@@ -112,15 +105,12 @@ public class VehicleGUI extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
         mainPanel.setBorder(BorderFactory.createTitledBorder("Vehicle Management"));
         
-        // Create split panel for Entry (left) and Exit (right)
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setDividerLocation(500);
         
-        // LEFT SIDE - Entry Panel
         JPanel entryPanel = new JPanel(new BorderLayout(5, 5));
         entryPanel.setBorder(BorderFactory.createTitledBorder("Vehicle Registration & Entry"));
         
-        // Top panel with buttons and search
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         
         registerButton = new JButton("Register Vehicle");
@@ -141,7 +131,6 @@ public class VehicleGUI extends JFrame {
         
         entryPanel.add(topPanel, BorderLayout.NORTH);
         
-        // Table for registered vehicles
         String[] columns = {"License Plate", "Vehicle Type", "VIP Status"};
         registeredVehiclesModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -153,7 +142,6 @@ public class VehicleGUI extends JFrame {
         JScrollPane tableScroll = new JScrollPane(registeredVehiclesTable);
         entryPanel.add(tableScroll, BorderLayout.CENTER);
         
-        // Bottom panel with Enter Parking button
         JPanel entryBottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         enterParkingButton = new JButton("Enter Parking");
         enterParkingButton.addActionListener(e -> handleEnterParking());
@@ -161,11 +149,9 @@ public class VehicleGUI extends JFrame {
         
         entryPanel.add(entryBottomPanel, BorderLayout.SOUTH);
         
-        // RIGHT SIDE - Exit Panel
         JPanel exitPanel = new JPanel(new BorderLayout(5, 5));
         exitPanel.setBorder(BorderFactory.createTitledBorder("Vehicle Exit"));
         
-        // Table for active tickets
         String[] exitColumns = {"Ticket ID", "License Plate", "Spot ID", "Entry Time", "Vehicle Type"};
         activeTicketsModel = new DefaultTableModel(exitColumns, 0) {
             @Override
@@ -177,7 +163,6 @@ public class VehicleGUI extends JFrame {
         JScrollPane exitTableScroll = new JScrollPane(activeTicketsTable);
         exitPanel.add(exitTableScroll, BorderLayout.CENTER);
         
-        // Bottom panel with Exit Parking button
         JPanel exitBottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton exitParkingButton = new JButton("Exit Parking");
         exitParkingButton.addActionListener(e -> handleVehicleExitFromTable());
@@ -185,7 +170,6 @@ public class VehicleGUI extends JFrame {
         
         exitPanel.add(exitBottomPanel, BorderLayout.SOUTH);
         
-        // Add both panels to split pane
         splitPane.setLeftComponent(entryPanel);
         splitPane.setRightComponent(exitPanel);
         
@@ -202,7 +186,6 @@ public class VehicleGUI extends JFrame {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // License Plate
         gbc.gridx = 0; gbc.gridy = 0;
         dialog.add(new JLabel("License Plate:"), gbc);
         
@@ -210,7 +193,6 @@ public class VehicleGUI extends JFrame {
         JTextField licensePlateField = new JTextField(15);
         dialog.add(licensePlateField, gbc);
         
-        // Vehicle Type
         gbc.gridx = 0; gbc.gridy = 1;
         dialog.add(new JLabel("Vehicle Type:"), gbc);
         
@@ -218,7 +200,6 @@ public class VehicleGUI extends JFrame {
         JComboBox<VehicleType> vehicleTypeCombo = new JComboBox<>(VehicleType.values());
         dialog.add(vehicleTypeCombo, gbc);
         
-        // Buttons
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         
@@ -227,7 +208,6 @@ public class VehicleGUI extends JFrame {
             String licensePlate = licensePlateField.getText().trim();
             VehicleType vehicleType = (VehicleType) vehicleTypeCombo.getSelectedItem();
             
-            // Validation: No spaces allowed
             if (licensePlate.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "License Plate cannot be empty!", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -238,7 +218,6 @@ public class VehicleGUI extends JFrame {
                 return;
             }
             
-            // Save to database
             if (saveVehicleToDatabase(licensePlate, vehicleType)) {
                 JOptionPane.showMessageDialog(dialog, "Vehicle registered successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadRegisteredVehicles(); // Refresh table
@@ -270,11 +249,11 @@ public class VehicleGUI extends JFrame {
             pstmt.setString(2, vehicleType.name());
             
             pstmt.executeUpdate();
-            showMessage("✅ Vehicle " + licensePlate + " registered successfully!");
+            showMessage("Vehicle " + licensePlate + " registered successfully!");
             return true;
             
         } catch (SQLException e) {
-            showMessage("❌ Error registering vehicle: " + e.getMessage());
+            showMessage("Error registering vehicle: " + e.getMessage());
             return false;
         }
     }
@@ -301,7 +280,7 @@ public class VehicleGUI extends JFrame {
             }
             
         } catch (SQLException e) {
-            showMessage("❌ Error loading vehicles: " + e.getMessage());
+            showMessage("Error loading vehicles: " + e.getMessage());
         }
     }
     
@@ -315,7 +294,6 @@ public class VehicleGUI extends JFrame {
             String spotId = (String) session.get("spot_id");
             String vehicleTypeStr = (String) session.get("vehicle_type");
             
-            // Create vehicle and ticket objects
             VehicleType vehicleType = VehicleType.valueOf(vehicleTypeStr);
             Vehicle vehicle = createVehicle(licensePlate, vehicleType);
             vehicle.setEntryTime(entryTime);
@@ -323,26 +301,23 @@ public class VehicleGUI extends JFrame {
             
             Ticket ticket = new Ticket(spotId, licensePlate, spotId, entryTime);
             
-            // Add to in-memory maps
             activeTickets.put(licensePlate, ticket);
             parkedVehicles.put(licensePlate, vehicle);
             
-            // Add to table
             addTicketToActiveTable(ticket, vehicleType);
             
-            // Mark spot as occupied in memory
             ParkingSpot spot = findSpotById(spotId);
             if (spot != null) {
                 try {
                     spot.parkVehicle(vehicle);
                 } catch (Exception e) {
-                    // Spot already marked as occupied in DB
+                    showMessage("Error marking spot " + spotId + " as occupied: " + e.getMessage());
                 }
             }
         }
         
         if (!sessions.isEmpty()) {
-            showMessage("✅ Loaded " + sessions.size() + " active parking session(s) from database");
+            showMessage("Loaded " + sessions.size() + " active parking session(s) from database");
         }
     }
     
@@ -350,7 +325,7 @@ public class VehicleGUI extends JFrame {
         String searchText = searchField.getText().trim().toUpperCase();
         
         if (searchText.isEmpty()) {
-            loadRegisteredVehicles(); // Show all
+            loadRegisteredVehicles();
             return;
         }
         
@@ -377,7 +352,7 @@ public class VehicleGUI extends JFrame {
             }
             
         } catch (SQLException e) {
-            showMessage("❌ Error searching vehicles: " + e.getMessage());
+            showMessage("Error searching vehicles: " + e.getMessage());
         }
     }
     
@@ -392,7 +367,6 @@ public class VehicleGUI extends JFrame {
         String licensePlate = (String) registeredVehiclesModel.getValueAt(selectedRow, 0);
         String vehicleTypeStr = (String) registeredVehiclesModel.getValueAt(selectedRow, 1);
         
-        // Check if already parked (check database)
         ParkingHistoryController historyController = new ParkingHistoryController();
         if (historyController.isVehicleParked(licensePlate)) {
             JOptionPane.showMessageDialog(this, "Vehicle " + licensePlate + " is already parked!", "Already Parked", JOptionPane.ERROR_MESSAGE);
@@ -401,10 +375,8 @@ public class VehicleGUI extends JFrame {
         
         VehicleType vehicleType = VehicleType.valueOf(vehicleTypeStr);
         
-        // Create vehicle
         Vehicle vehicle = createVehicle(licensePlate, vehicleType);
         
-        // Find available spot
         ParkingSpot availableSpot = findAvailableSpot(vehicle);
         
         if (availableSpot == null) {
@@ -412,13 +384,11 @@ public class VehicleGUI extends JFrame {
             return;
         }
         
-        // Park vehicle
         try {
             availableSpot.parkVehicle(vehicle);
             vehicle.setEntryTime(LocalDateTime.now());
             vehicle.setAssignedSpotId(availableSpot.getSpotId());
             
-            // Create ticket
             Ticket ticket = new Ticket(
                 availableSpot.getSpotId(),
                 licensePlate,
@@ -429,16 +399,13 @@ public class VehicleGUI extends JFrame {
             activeTickets.put(licensePlate, ticket);
             parkedVehicles.put(licensePlate, vehicle);
             
-            // Update database - spot status
             ParkingSpotController spotController = new ParkingSpotController();
             spotController.updateSpotStatus(availableSpot.getSpotId(), 1, licensePlate);
             
-            // Create parking history entry
             historyController.createParkingEntry(licensePlate, vehicle.getEntryTime(), availableSpot.getSpotId());
             
-            // Update UI
             addTicketToActiveTable(ticket, vehicleType);
-            showMessage("✅ Vehicle " + licensePlate + " parked at " + availableSpot.getSpotId());
+            showMessage("Vehicle " + licensePlate + " parked at " + availableSpot.getSpotId());
             showMessage("Ticket ID: " + ticket.getTicketId());
             
             updateStatus();
@@ -452,14 +419,12 @@ public class VehicleGUI extends JFrame {
     private JPanel createCenterPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         
-        // Output area
         outputArea = new JTextArea(10, 50);
         outputArea.setEditable(false);
         JScrollPane outputScroll = new JScrollPane(outputArea);
         outputScroll.setBorder(BorderFactory.createTitledBorder("System Messages"));
         panel.add(outputScroll, BorderLayout.CENTER);
         
-        // Status panel
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton refreshButton = new JButton("Refresh Status");
         refreshButton.addActionListener(e -> updateStatus());
@@ -482,9 +447,8 @@ public class VehicleGUI extends JFrame {
             return;
         }
         
-        String licensePlate = (String) activeTicketsModel.getValueAt(selectedRow, 1); // Column 1 is License Plate
+        String licensePlate = (String) activeTicketsModel.getValueAt(selectedRow, 1);
         
-        // Call the existing exit handler
         handleVehicleExit(licensePlate);
     }
     
@@ -496,7 +460,6 @@ public class VehicleGUI extends JFrame {
             return;
         }
         
-        // Check database for active parking session
         ParkingHistoryController historyController = new ParkingHistoryController();
         java.util.Map<String, Object> session = historyController.getActiveParkingSession(licensePlate);
         
@@ -505,40 +468,33 @@ public class VehicleGUI extends JFrame {
             return;
         }
         
-        // Get session details
         LocalDateTime entryTime = (LocalDateTime) session.get("entry_time");
         String spotId = (String) session.get("spot_id");
         
-        // Find and free the spot
         ParkingSpot spot = findSpotById(spotId);
         if (spot != null) {
             spot.removeVehicle();
         }
         
-        // Calculate parking duration and fee
         LocalDateTime exitTime = LocalDateTime.now();
         long hours = ChronoUnit.HOURS.between(entryTime, exitTime);
-        if (hours == 0) hours = 1; // Minimum 1 hour
+        if (hours == 0) hours = 1; 
         
         double rate = spot != null ? spot.getEffectiveRate(parkedVehicles.get(licensePlate)) : 5.0;
         double fee = hours * rate;
         
-        // Update database - complete parking history
         historyController.completeParkingExit(licensePlate, exitTime, fee);
         
-        // Update database - free the spot
         if (spot != null) {
             ParkingSpotController spotController = new ParkingSpotController();
             spotController.updateSpotStatus(spot.getSpotId(), 0, null);
         }
         
-        // Remove from active tickets
         activeTickets.remove(licensePlate);
         parkedVehicles.remove(licensePlate);
         
-        // Update UI
         removeTicketFromActiveTable(licensePlate);
-        showMessage("✅ Vehicle " + licensePlate + " exited");
+        showMessage("Vehicle " + licensePlate + " exited");
         showMessage("Parking Duration: " + hours + " hour(s)");
         showMessage("Parking Fee: $" + String.format("%.2f", fee));
         showMessage("Spot " + spotId + " is now available");

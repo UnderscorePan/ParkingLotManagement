@@ -39,7 +39,7 @@ public class FloorController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting floor statistics: " + e.getMessage());
+            System.err.println("Error getting floor statistics: " + e.getMessage());
         }
         
         return floorStats;
@@ -59,7 +59,7 @@ public class FloorController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking floor spots: " + e.getMessage());
+            System.err.println("Error checking floor spots: " + e.getMessage());
         }
         
         return false;
@@ -79,7 +79,7 @@ public class FloorController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking occupied spots: " + e.getMessage());
+            System.err.println("Error checking occupied spots: " + e.getMessage());
         }
         
         return false;
@@ -93,11 +93,11 @@ public class FloorController {
             
             pstmt.setInt(1, floorNumber);
             pstmt.executeUpdate();
-            System.out.println("✅ All spots on floor " + floorNumber + " deleted");
+            System.out.println("All spots on floor " + floorNumber + " deleted");
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting floor spots: " + e.getMessage());
+            System.err.println("Error deleting floor spots: " + e.getMessage());
             return false;
         }
     }
@@ -115,7 +115,7 @@ public class FloorController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting floor numbers: " + e.getMessage());
+            System.err.println("Error getting floor numbers: " + e.getMessage());
         }
         
         return floors;
