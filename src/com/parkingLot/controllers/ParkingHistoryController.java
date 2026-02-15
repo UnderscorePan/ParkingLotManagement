@@ -137,4 +137,74 @@ public class ParkingHistoryController {
         
         return false;
     }
+
+    public List<Map<String, Object>> getCurrentlyParkedVehicles() {
+        List<Map<String, Object>> vehicles = new ArrayList<>();
+        String sql = "SELECT ph.plate_number, v.vehicle_type, ph.spot_id, ph.entry_time " +
+                     "FROM parking_history ph " +
+                     "LEFT JOIN vehicles v ON ph.plate_number = v.plate_number " +
+                     "WHERE ph.exit_time IS NULL " +
+                     "ORDER BY ph.entry_time DESC";
+
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> vehicle = new HashMap<>();
+                vehicle.put("plate_number", rs.getString("plate_number"));
+                vehicle.put("vehicle_type", rs.getString("vehicle_type"));
+                vehicle.put("spot_id", rs.getString("spot_id"));
+                vehicle.put("entry_time", rs.getString("entry_time"));
+                vehicles.add(vehicle);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting currently parked vehicles: " + e.getMessage());
+        }
+
+        return vehicles;
+    }
+
+    public double getTotalRevenue() {
+        String sql = "SELECT SUM(fee_charged) as total FROM parking_history WHERE fee_charged IS NOT NULL";
+
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getDouble("total");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting total revenue: " + e.getMessage());
+        }
+
+        return 0.0;
+    }
+
+    public boolean updateEntryTime(String licensePlate, LocalDateTime newEntryTime) {
+        String sql = "UPDATE parking_history SET entry_time = ? WHERE plate_number = ? AND exit_time IS NULL";
+
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, newEntryTime.format(DATE_FORMATTER));
+            pstmt.setString(2, licensePlate);
+
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("✅ Entry time updated for " + licensePlate + " to " + newEntryTime);
+                return true;
+            } else {
+                System.err.println("⚠️ No active parking session found for: " + licensePlate);
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error updating entry time: " + e.getMessage());
+            return false;
+        }
+    }
 }

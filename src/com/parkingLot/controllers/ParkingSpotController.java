@@ -12,9 +12,13 @@ import com.parkingLot.models.ParkingSpot;
 public class ParkingSpotController {
     
     public boolean saveParkingSpot(ParkingSpot spot, String lotId) {
-        String sql = "INSERT INTO parking_spots (spot_id, lot_id, floor_number, row_number, spot_number, spot_type, status, current_vehicle_plate) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        return saveParkingSpot(spot, lotId, null);
+    }
+
+    public boolean saveParkingSpot(ParkingSpot spot, String lotId, String reservedForPlate) {
+        String sql = "INSERT INTO parking_spots (spot_id, lot_id, floor_number, row_number, spot_number, spot_type, status, current_vehicle_plate, reserved_for_plate) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = databaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -26,9 +30,11 @@ public class ParkingSpotController {
             pstmt.setString(6, spot.getSpotType().toString());
             pstmt.setInt(7, spot.getStatus().ordinal());
             pstmt.setString(8, null);
-            
+            pstmt.setString(9, reservedForPlate);
+
             pstmt.executeUpdate();
-            System.out.println("✅ Parking spot " + spot.getSpotId() + " saved to database");
+            String reserveMsg = reservedForPlate != null ? " (Reserved for: " + reservedForPlate + ")" : "";
+            System.out.println("✅ Parking spot " + spot.getSpotId() + " saved to database" + reserveMsg);
             return true;
             
         } catch (SQLException e) {
@@ -139,7 +145,7 @@ public class ParkingSpotController {
     
     public java.util.List<java.util.Map<String, Object>> getAllSpotsForDisplay() {
         java.util.List<java.util.Map<String, Object>> spots = new java.util.ArrayList<>();
-        String sql = "SELECT spot_id, floor_number, row_number, spot_number, spot_type, status, current_vehicle_plate " +
+        String sql = "SELECT spot_id, floor_number, row_number, spot_number, spot_type, status, current_vehicle_plate, reserved_for_plate " +
                      "FROM parking_spots ORDER BY floor_number, row_number, spot_number";
         
         try (Connection conn = databaseConnection.connect();
@@ -155,6 +161,7 @@ public class ParkingSpotController {
                 spot.put("spot_type", rs.getString("spot_type"));
                 spot.put("status", rs.getInt("status"));
                 spot.put("current_vehicle_plate", rs.getString("current_vehicle_plate"));
+                spot.put("reserved_for_plate", rs.getString("reserved_for_plate"));
                 spots.add(spot);
             }
             

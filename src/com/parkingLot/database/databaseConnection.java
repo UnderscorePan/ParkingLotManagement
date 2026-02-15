@@ -31,8 +31,9 @@ public class databaseConnection {
             stmt.execute("CREATE TABLE IF NOT EXISTS vehicles (" +
                     "plate_number TEXT PRIMARY KEY, " +
                     "vehicle_type TEXT, " +
-                    "isVip INTEGER DEFAULT 0)");
-            
+                    "has_handicapped_card INTEGER DEFAULT 0, " +
+                    "is_vip INTEGER DEFAULT 0)");
+
             stmt.execute("CREATE TABLE IF NOT EXISTS fines (" +
                     "fine_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "plate_number TEXT NOT NULL, " +
@@ -62,6 +63,7 @@ public class databaseConnection {
                     "spot_type TEXT, " +
                     "status INTEGER DEFAULT 0, " +
                     "current_vehicle_plate TEXT, " +
+                    "reserved_for_plate TEXT, " +
                     "FOREIGN KEY (lot_id) REFERENCES parking_lots(lot_id), " +
                     "FOREIGN KEY (spot_type) REFERENCES parking_rates(spot_type))");
             
@@ -83,6 +85,43 @@ public class databaseConnection {
                     "FOREIGN KEY (plate_number) REFERENCES vehicles(plate_number))");
             
             System.out.println("✅ Database tables initialized successfully!");
+
+            // Run migrations to update existing tables
+            migrateDatabaseSchema(conn);
+        }
+    }
+
+    private static void migrateDatabaseSchema(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            // Check if reserved_for_plate column exists in parking_spots
+            try {
+                stmt.execute("SELECT reserved_for_plate FROM parking_spots LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add it
+                System.out.println("🔧 Migrating: Adding reserved_for_plate to parking_spots...");
+                stmt.execute("ALTER TABLE parking_spots ADD COLUMN reserved_for_plate TEXT");
+                System.out.println("✅ Migration complete: reserved_for_plate added");
+            }
+
+            // Check if has_handicapped_card column exists in vehicles
+            try {
+                stmt.execute("SELECT has_handicapped_card FROM vehicles LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add it
+                System.out.println("🔧 Migrating: Adding has_handicapped_card to vehicles...");
+                stmt.execute("ALTER TABLE vehicles ADD COLUMN has_handicapped_card INTEGER DEFAULT 0");
+                System.out.println("✅ Migration complete: has_handicapped_card added");
+            }
+
+            // Check if is_vip column exists in vehicles
+            try {
+                stmt.execute("SELECT is_vip FROM vehicles LIMIT 1");
+            } catch (SQLException e) {
+                // Column doesn't exist, add it
+                System.out.println("🔧 Migrating: Adding is_vip to vehicles...");
+                stmt.execute("ALTER TABLE vehicles ADD COLUMN is_vip INTEGER DEFAULT 0");
+                System.out.println("✅ Migration complete: is_vip added");
+            }
         }
     }
     

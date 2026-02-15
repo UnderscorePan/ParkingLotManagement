@@ -12,10 +12,18 @@ import java.util.List;
 public class FineController {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static FineController instance;
     private FineStrategy currentStrategy;
 
-    public FineController() {
+    private FineController() {
         this.currentStrategy = new FixedFineStrategy();
+    }
+
+    public static FineController getInstance() {
+        if (instance == null) {
+            instance = new FineController();
+        }
+        return instance;
     }
 
     public void setFineScheme(FineScheme scheme) {
@@ -32,6 +40,7 @@ public class FineController {
             default:
                 this.currentStrategy = new FixedFineStrategy();
         }
+        System.out.println("🔧 FineController: Strategy changed to " + scheme + " - " + currentStrategy.getClass().getSimpleName());
     }
 
     public FineStrategy getCurrentStrategy() {

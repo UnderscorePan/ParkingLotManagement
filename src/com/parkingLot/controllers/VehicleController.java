@@ -160,4 +160,81 @@ public class VehicleController {
             return false;
         }
     }
+
+    public boolean registerVehicle(String licensePlate, String vehicleType, boolean hasHandicappedCard) {
+        // Check if vehicle already exists
+        String checkSql = "SELECT COUNT(*) FROM vehicles WHERE plate_number = ?";
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setString(1, licensePlate);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                // Vehicle already exists, just return true
+                System.out.println("✅ Vehicle " + licensePlate + " already registered");
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error checking vehicle existence: " + e.getMessage());
+        }
+
+        // Register new vehicle
+        String insertSql = "INSERT INTO vehicles (plate_number, vehicle_type, has_handicapped_card) VALUES (?, ?, ?)";
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+
+            pstmt.setString(1, licensePlate);
+            pstmt.setString(2, vehicleType);
+            pstmt.setInt(3, hasHandicappedCard ? 1 : 0);
+
+            pstmt.executeUpdate();
+            System.out.println("✅ Vehicle " + licensePlate + " registered successfully");
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error registering vehicle: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean hasHandicappedCard(String licensePlate) {
+        String sql = "SELECT has_handicapped_card FROM vehicles WHERE plate_number = ?";
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, licensePlate);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("has_handicapped_card") == 1;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error checking handicapped card status: " + e.getMessage());
+        }
+
+        return false; // Default to no card
+    }
+
+    public String getVehicleType(String licensePlate) {
+        String sql = "SELECT vehicle_type FROM vehicles WHERE plate_number = ?";
+        try (Connection conn = databaseConnection.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, licensePlate);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("vehicle_type");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Error getting vehicle type: " + e.getMessage());
+        }
+
+        return null;
+    }
 }

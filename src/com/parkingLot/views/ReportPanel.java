@@ -4,8 +4,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
 
-import com.parkingLot.views.ReportPanel.RevenueReportPanel.FinesReportPanel;
-import com.parkingLot.views.ReportPanel.RevenueReportPanel.OccupancyReportPanel;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -72,11 +70,11 @@ public class ReportPanel extends JPanel {
             searchField = new JTextField(20);
             searchPanel.add(searchField);
             
-            JButton searchButton = createButton("Search", new Color(52, 152, 219));
+            JButton searchButton = ReportPanel.this.createButton("Search", new Color(52, 152, 219));
             searchButton.addActionListener(e -> searchVehicles());
             searchPanel.add(searchButton);
             
-            refreshButton = createButton("Refresh", new Color(46, 204, 113));
+            refreshButton = ReportPanel.this.createButton("Refresh", new Color(46, 204, 113));
             refreshButton.addActionListener(e -> loadVehicles());
             searchPanel.add(refreshButton);
             
@@ -94,8 +92,8 @@ public class ReportPanel extends JPanel {
         
         private JPanel createTablePanel() {
             JPanel panel = new JPanel(new BorderLayout());
-            panel.setBorder(createSectionBorder("Currently Parked Vehicles"));
-            
+            panel.setBorder(ReportPanel.this.createSectionBorder("Currently Parked Vehicles"));
+
             String[] columns = {
                 "License Plate", "Vehicle Type", "Spot ID", "Floor",
                 "Entry Time", "Duration (hrs)", "Current Fee", "Unpaid Fines"
@@ -169,7 +167,7 @@ public class ReportPanel extends JPanel {
             });
             topPanel.add(periodCombo);
             
-            JButton generateButton = createButton("Generate Report", new Color(52, 152, 219));
+            JButton generateButton = ReportPanel.this.createButton("Generate Report", new Color(52, 152, 219));
             generateButton.addActionListener(e -> generateReport());
             topPanel.add(generateButton);
             
@@ -179,8 +177,8 @@ public class ReportPanel extends JPanel {
             
             // Summary panel
             JPanel summaryPanel = new JPanel(new BorderLayout());
-            summaryPanel.setBorder(createSectionBorder("Revenue Summary"));
-            
+            summaryPanel.setBorder(ReportPanel.this.createSectionBorder("Revenue Summary"));
+
             summaryArea = new JTextArea();
             summaryArea.setEditable(false);
             summaryArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
@@ -191,8 +189,8 @@ public class ReportPanel extends JPanel {
             
             // Details panel
             JPanel detailsPanel = new JPanel(new BorderLayout());
-            detailsPanel.setBorder(createSectionBorder("Revenue Breakdown"));
-            
+            detailsPanel.setBorder(ReportPanel.this.createSectionBorder("Revenue Breakdown"));
+
             String[] columns = {"Date", "Parking Fees", "Fines Collected", "Total Revenue", "Transactions"};
             tableModel = new DefaultTableModel(columns, 0) {
                 @Override
@@ -219,10 +217,10 @@ public class ReportPanel extends JPanel {
         }
         
         private void generateReport() {
-        // Load from database via controller
+            // Load from database via controller
             String period = (String) periodCombo.getSelectedItem();
         }
-    
+    }
 
     class OccupancyReportPanel extends JPanel {
         private JTextArea summaryArea;
@@ -238,7 +236,7 @@ public class ReportPanel extends JPanel {
         private void initializeComponents() {
             // Top panel - controls
             JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JButton refreshButton = createButton("Refresh", new Color(46, 204, 113));
+            JButton refreshButton = ReportPanel.this.createButton("Refresh", new Color(46, 204, 113));
             refreshButton.addActionListener(e -> loadOccupancyData());
             topPanel.add(refreshButton);
             
@@ -248,8 +246,8 @@ public class ReportPanel extends JPanel {
             
             // Summary panel
             JPanel summaryPanel = new JPanel(new BorderLayout());
-            summaryPanel.setBorder(createSectionBorder("Occupancy Summary"));
-            
+            summaryPanel.setBorder(ReportPanel.this.createSectionBorder("Occupancy Summary"));
+
             summaryArea = new JTextArea();
             summaryArea.setEditable(false);
             summaryArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
@@ -260,8 +258,8 @@ public class ReportPanel extends JPanel {
             
             // Table panel
             JPanel tablePanel = new JPanel(new BorderLayout());
-            tablePanel.setBorder(createSectionBorder("Floor-wise Occupancy"));
-            
+            tablePanel.setBorder(ReportPanel.this.createSectionBorder("Floor-wise Occupancy"));
+
             String[] columns = {"Floor", "Total Spots", "Occupied", "Available", "Occupancy %"};
             tableModel = new DefaultTableModel(columns, 0) {
                 @Override
@@ -289,6 +287,7 @@ public class ReportPanel extends JPanel {
         
         private void loadOccupancyData() {
             // Load from database
+        }
     }
     
     class FinesReportPanel extends JPanel {
@@ -315,7 +314,7 @@ public class ReportPanel extends JPanel {
             totalFinesLabel.setFont(new Font("Arial", Font.BOLD, 14));
             totalFinesLabel.setForeground(new Color(231, 76, 60));
             
-            JButton refreshButton = createButton("Refresh", new Color(46, 204, 113));
+            JButton refreshButton = ReportPanel.this.createButton("Refresh", new Color(46, 204, 113));
             refreshButton.addActionListener(e -> loadFinesData());
             
             topPanel.add(totalVehiclesLabel);
@@ -324,8 +323,8 @@ public class ReportPanel extends JPanel {
             
             // Table panel
             JPanel tablePanel = new JPanel(new BorderLayout());
-            tablePanel.setBorder(createSectionBorder("Outstanding Fines"));
-            
+            tablePanel.setBorder(ReportPanel.this.createSectionBorder("Outstanding Fines"));
+
             String[] columns = {
                 "License Plate", "Fine Type", "Fine Amount", "Issue Date", 
                 "Days Overdue", "Current Location", "Status"
@@ -349,10 +348,10 @@ public class ReportPanel extends JPanel {
             // Bottom panel - actions
             JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
             
-            JButton exportButton = createButton("Export to CSV", new Color(52, 152, 219));
+            JButton exportButton = ReportPanel.this.createButton("Export to CSV", new Color(52, 152, 219));
             exportButton.addActionListener(e -> exportFines());
             
-            JButton sendReminderButton = createButton("Send Reminder", new Color(243, 156, 18));
+            JButton sendReminderButton = ReportPanel.this.createButton("Send Reminder", new Color(243, 156, 18));
             sendReminderButton.addActionListener(e -> sendReminder());
             
             bottomPanel.add(exportButton);
@@ -436,3 +435,4 @@ public class ReportPanel extends JPanel {
             new Color(44, 62, 80)
         );
     }
+}

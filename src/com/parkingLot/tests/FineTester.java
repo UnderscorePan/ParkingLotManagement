@@ -75,7 +75,7 @@ public class FineTester {
     private static void testFineController() {
         System.out.println("--- Test 3: Fine Controller (Database) ---");
 
-        FineController controller = new FineController();
+        FineController controller = FineController.getInstance();
         String testPlate = "TEST-" + System.currentTimeMillis();
 
         System.out.println("\n1. Setting fine scheme to PROGRESSIVE...");
