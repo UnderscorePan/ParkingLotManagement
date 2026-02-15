@@ -1,11 +1,17 @@
 package com.parkingLot.tests;
 
-import com.parkingLot.controllers.FineController;
-import com.parkingLot.models.fines.*;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.parkingLot.controllers.FineController;
+import com.parkingLot.models.fines.Fine;
+import com.parkingLot.models.fines.FineCalculations;
+import com.parkingLot.models.fines.FineScheme;
+import com.parkingLot.models.fines.FineStrategy;
+import com.parkingLot.models.fines.FixedFineStrategy;
+import com.parkingLot.models.fines.HourlyFineStrategy;
+import com.parkingLot.models.fines.ProgressiveFineStrategy;
 
 public class FineTester {
 
@@ -60,13 +66,13 @@ public class FineTester {
         System.out.println("3. Fine amount (Hourly): RM " + fineAmount);
 
         Fine fine = FineCalculations.createFineForOverstay(
-            "ABC123", strategy, entryTime, exitTime, "Overstay violation (>24 hours)"
+            "ABC123", strategy, entryTime, exitTime
         );
 
         if (fine != null) {
             System.out.println("4. Fine created:");
             System.out.println("   - License: " + fine.getLicensePlate() + ", Amount: RM " + fine.getAmount());
-            System.out.println("   - Reason: " + fine.getReason() + ", Paid: " + fine.isPaid());
+            System.out.println("   - Paid: " + fine.isPaid());
         }
 
         System.out.println();

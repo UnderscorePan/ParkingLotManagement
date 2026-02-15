@@ -1,13 +1,23 @@
 package com.parkingLot.controllers;
 
-import com.parkingLot.database.databaseConnection;
-import com.parkingLot.models.fines.*;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.parkingLot.database.databaseConnection;
+import com.parkingLot.models.fines.Fine;
+import com.parkingLot.models.fines.FineCalculations;
+import com.parkingLot.models.fines.FineScheme;
+import com.parkingLot.models.fines.FineStrategy;
+import com.parkingLot.models.fines.FixedFineStrategy;
+import com.parkingLot.models.fines.HourlyFineStrategy;
+import com.parkingLot.models.fines.ProgressiveFineStrategy;
 
 public class FineController {
 
@@ -39,14 +49,18 @@ public class FineController {
     }
 
     public boolean saveFine(Fine fine) {
-        String sql = "INSERT INTO fines (plate_number, fine_amount, fine_reason, is_paid, fine_date) VALUES (?, ?, ?, ?, ?)";
+        return saveFine(fine, getFineTypeName(currentStrategy));
+    }
+    
+    public boolean saveFine(Fine fine, String fineType) {
+        String sql = "INSERT INTO fines (plate_number, fine_amount, fine_type, is_paid, fine_date) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = databaseConnection.connect();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, fine.getLicensePlate());
             pstmt.setDouble(2, fine.getAmount());
-            pstmt.setString(3, fine.getReason());
+            pstmt.setString(3, fineType);
             pstmt.setInt(4, fine.isPaid() ? 1 : 0);
             pstmt.setString(5, fine.getIssueDate().format(DATE_FORMATTER));
             pstmt.executeUpdate();
@@ -56,6 +70,17 @@ public class FineController {
             System.err.println("Error saving fine: " + e.getMessage());
             return false;
         }
+    }
+    
+    private String getFineTypeName(FineStrategy strategy) {
+        if (strategy instanceof FixedFineStrategy) {
+            return "Fixed Fine Scheme";
+        } else if (strategy instanceof HourlyFineStrategy) {
+            return "Hourly Fine Scheme";
+        } else if (strategy instanceof ProgressiveFineStrategy) {
+            return "Progressive Fine Scheme";
+        }
+        return "Unknown";
     }
 
     public List<Fine> getUnpaidFines(String licensePlate) {
@@ -73,8 +98,7 @@ public class FineController {
                     String.valueOf(rs.getInt("fine_id")),
                     rs.getString("plate_number"),
                     rs.getDouble("fine_amount"),
-                    LocalDateTime.parse(rs.getString("fine_date"), DATE_FORMATTER),
-                    rs.getString("fine_reason")
+                    LocalDateTime.parse(rs.getString("fine_date"), DATE_FORMATTER)
                 );
                 fines.add(fine);
             }
@@ -86,8 +110,12 @@ public class FineController {
         return fines;
     }
 
+
     public double getTotalUnpaidFines(String licensePlate) {
-        return getUnpaidFines(licensePlate).stream().mapToDouble(Fine::getAmount).sum();
+        List<Fine> fines = getUnpaidFines(licensePlate);
+        double total = fines.stream().mapToDouble(Fine::getAmount).sum();
+        System.out.println("🔍 Checking unpaid fines for: " + licensePlate + " → Found " + fines.size() + " fine(s), Total: RM " + total);
+        return total;
     }
 
     public boolean markFineAsPaid(String fineId) {
@@ -127,7 +155,7 @@ public class FineController {
         }
 
         Fine fine = FineCalculations.createFineForOverstay(
-            licensePlate, currentStrategy, entryTime, exitTime, "Overstay violation (>24 hours)"
+            licensePlate, currentStrategy, entryTime, exitTime
         );
 
         if (fine != null) {
@@ -149,8 +177,7 @@ public class FineController {
                     String.valueOf(rs.getInt("fine_id")),
                     rs.getString("plate_number"),
                     rs.getDouble("fine_amount"),
-                    LocalDateTime.parse(rs.getString("fine_date"), DATE_FORMATTER),
-                    rs.getString("fine_reason")
+                    LocalDateTime.parse(rs.getString("fine_date"), DATE_FORMATTER)
                 );
                 if (rs.getInt("is_paid") == 1) {
                     fine.paidFine();
@@ -164,4 +191,5 @@ public class FineController {
 
         return fines;
     }
+
 }

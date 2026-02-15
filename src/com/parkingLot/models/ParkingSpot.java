@@ -50,6 +50,10 @@ public class ParkingSpot implements ParkingComponent {
         this.status = SpotStatus.AVAILABLE;
     }
 
+    public void setStatus(SpotStatus status) {
+        this.status = status;
+    }
+
     public double getEffectiveRate(Vehicle vehicle) {
         if (vehicle.getType() == VehicleType.HANDICAP_VEHICLE && this.spotType == SpotType.HANDICAP) {
             return 0.0;
