@@ -228,95 +228,149 @@ public class EntryExitPanel extends JPanel {
             String vehicleType = (String) vehicleTypeCombo.getSelectedItem();
             boolean hasHandicappedCard = handicappedCheckBox.isSelected();
 
+            if (!validateSearchInput(licensePlate)) {
+                return;
+            }
+
+            // Clear and search for compatible spots
+            spotsTableModel.setRowCount(0);
+            SpotType[] compatibleSpotTypes = getCompatibleSpotTypes(vehicleType, hasHandicappedCard);
+
+            int availableCount = loadCompatibleSpots(licensePlate, vehicleType, hasHandicappedCard, compatibleSpotTypes);
+
+            parkVehicleButton.setEnabled(availableCount > 0);
+            showSearchResult(availableCount, vehicleType, hasHandicappedCard);
+        }
+
+        private boolean validateSearchInput(String licensePlate) {
             if (licensePlate.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                     "Please enter license plate number!",
                     "Input Required",
                     JOptionPane.WARNING_MESSAGE);
-                return;
+                return false;
             }
             
-            // Check if vehicle is already parked
             if (historyController.isVehicleParked(licensePlate)) {
                 JOptionPane.showMessageDialog(this,
                     "Vehicle " + licensePlate + " is already parked!",
                     "Already Parked",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+                return false;
             }
 
-            // Clear existing spots
-            spotsTableModel.setRowCount(0);
+            return true;
+        }
 
-            // Get appropriate spot types based on vehicle type AND handicapped card
-            SpotType[] compatibleSpotTypes = getCompatibleSpotTypes(vehicleType, hasHandicappedCard);
-
-            // Load available spots
+        private int loadCompatibleSpots(String licensePlate, String vehicleType,
+                                         boolean hasHandicappedCard, SpotType[] compatibleSpotTypes) {
             List<Map<String, Object>> allSpots = spotController.getAllSpotsForDisplay();
             int availableCount = 0;
 
             for (Map<String, Object> spot : allSpots) {
-                int status = (Integer) spot.get("status");
-                if (status == 0) { // Available
-                    String spotType = (String) spot.get("spot_type");
-                    String reservedForPlate = (String) spot.get("reserved_for_plate");
+                if (isSpotAvailable(spot)) {
+                    // Check if this spot is specifically reserved for this vehicle
+                    boolean isMyReservedSpot = isSpotReservedForVehicle(spot, licensePlate);
 
-                    // Check if spot type is compatible
-                    for (SpotType compatibleType : compatibleSpotTypes) {
-                        if (spotType.equals(compatibleType.toString())) {
-                            // If spot is RESERVED and has a reserved plate, only show for that vehicle
-                            if (spotType.equals("RESERVED") && reservedForPlate != null && !reservedForPlate.isEmpty()) {
-                                if (!licensePlate.equalsIgnoreCase(reservedForPlate)) {
-                                    continue; // Skip this spot - it's reserved for someone else
-                                }
-                            }
-
-                            String spotId = (String) spot.get("spot_id");
-                            int floor = (Integer) spot.get("floor_number");
-
-                            // Get rate - special handling for Handicapped Vehicle type
-                            String rate;
-                            if (vehicleType.equals("Handicapped Vehicle")) {
-                                rate = getRateForHandicappedVehicle(spotType, hasHandicappedCard);
-                            } else {
-                                rate = getRateForType(spotType, hasHandicappedCard);
-                            }
-
-                            // Add indicator if spot is reserved for this vehicle
-                            if (reservedForPlate != null && !reservedForPlate.isEmpty() &&
-                                licensePlate.equalsIgnoreCase(reservedForPlate)) {
-                                rate = rate + " (YOUR SPOT)";
-                            }
-
-                            spotsTableModel.addRow(new Object[]{
-                                spotId, floor, spotType, rate
-                            });
+                    // Show spot if: it's compatible OR it's reserved for this vehicle
+                    if (isMyReservedSpot || isSpotCompatible(spot, compatibleSpotTypes)) {
+                        if (canVehicleUseSpot(spot, licensePlate)) {
+                            addSpotToTable(spot, licensePlate, vehicleType, hasHandicappedCard);
                             availableCount++;
-                            break;
                         }
                     }
                 }
             }
 
-            parkVehicleButton.setEnabled(availableCount > 0);
+            return availableCount;
+        }
 
+        private boolean isSpotReservedForVehicle(Map<String, Object> spot, String licensePlate) {
+            String spotType = (String) spot.get("spot_type");
+            String reservedForPlate = (String) spot.get("reserved_for_plate");
+
+            boolean isReserved = spotType.equals("RESERVED") &&
+                   reservedForPlate != null &&
+                   !reservedForPlate.isEmpty() &&
+                   licensePlate.equalsIgnoreCase(reservedForPlate);
+
+            if (isReserved) {
+                System.out.println("✅ Found reserved spot for " + licensePlate + ": " + spot.get("spot_id"));
+            }
+
+            return isReserved;
+        }
+
+        private boolean isSpotAvailable(Map<String, Object> spot) {
+            return (Integer) spot.get("status") == 0;
+        }
+
+        private boolean isSpotCompatible(Map<String, Object> spot, SpotType[] compatibleTypes) {
+            String spotType = (String) spot.get("spot_type");
+            for (SpotType compatibleType : compatibleTypes) {
+                if (spotType.equals(compatibleType.toString())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean canVehicleUseSpot(Map<String, Object> spot, String licensePlate) {
+            String spotType = (String) spot.get("spot_type");
+            String reservedForPlate = (String) spot.get("reserved_for_plate");
+
+            // If spot is RESERVED and has a reserved plate, only that vehicle can use it
+            if (spotType.equals("RESERVED") && reservedForPlate != null && !reservedForPlate.isEmpty()) {
+                return licensePlate.equalsIgnoreCase(reservedForPlate);
+            }
+
+            return true;
+        }
+
+        private void addSpotToTable(Map<String, Object> spot, String licensePlate,
+                                     String vehicleType, boolean hasHandicappedCard) {
+            String spotId = (String) spot.get("spot_id");
+            int floor = (Integer) spot.get("floor_number");
+            String spotType = (String) spot.get("spot_type");
+            String reservedForPlate = (String) spot.get("reserved_for_plate");
+
+            // Get rate with special handling for vehicle types
+            String rate = calculateDisplayRate(spotType, vehicleType, hasHandicappedCard);
+
+            // Add indicator if this is user's reserved spot
+            if (isReservedForVehicle(reservedForPlate, licensePlate)) {
+                rate = rate + " ⭐ YOUR SPOT";
+            }
+
+            spotsTableModel.addRow(new Object[]{spotId, floor, spotType, rate});
+        }
+
+        private boolean isReservedForVehicle(String reservedForPlate, String licensePlate) {
+            return reservedForPlate != null && !reservedForPlate.isEmpty() &&
+                   licensePlate.equalsIgnoreCase(reservedForPlate);
+        }
+
+        private String calculateDisplayRate(String spotType, String vehicleType, boolean hasHandicappedCard) {
+            if (vehicleType.equals("Handicapped Vehicle")) {
+                return getRateForHandicappedVehicle(spotType, hasHandicappedCard);
+            }
+            return getRateForType(spotType, hasHandicappedCard);
+        }
+
+        private void showSearchResult(int availableCount, String vehicleType, boolean hasHandicappedCard) {
             if (availableCount == 0) {
                 String message = "No available spots for " + vehicleType + "!";
                 if (hasHandicappedCard) {
                     message += "\n(Including handicapped spots)";
                 }
-                JOptionPane.showMessageDialog(this,
-                    message,
-                    "No Available Spots",
+                JOptionPane.showMessageDialog(this, message, "No Available Spots",
                     JOptionPane.WARNING_MESSAGE);
             } else {
                 String message = "Found " + availableCount + " available spot(s) for " + vehicleType;
                 if (hasHandicappedCard) {
                     message += "\n(Including handicapped spots with card)";
                 }
-                JOptionPane.showMessageDialog(this,
-                    message,
-                    "Spots Found",
+                JOptionPane.showMessageDialog(this, message, "Spots Found",
                     JOptionPane.INFORMATION_MESSAGE);
             }
         }
@@ -326,23 +380,23 @@ public class EntryExitPanel extends JPanel {
 
             switch (vehicleType) {
                 case "Motorcycle":
-                    // Motorcycle can ONLY park in COMPACT spots
-                    baseTypes = new SpotType[]{SpotType.COMPACT};
+                    // Motorcycle can park in COMPACT spots + any RESERVED spot assigned to them
+                    baseTypes = new SpotType[]{SpotType.COMPACT, SpotType.RESERVED};
                     break;
                 case "Car":
-                    // Car can park in COMPACT or REGULAR spots
-                    baseTypes = new SpotType[]{SpotType.COMPACT, SpotType.REGULAR};
+                    // Car can park in COMPACT, REGULAR + any RESERVED spot assigned to them
+                    baseTypes = new SpotType[]{SpotType.COMPACT, SpotType.REGULAR, SpotType.RESERVED};
                     break;
                 case "SUV/Truck":
-                    // SUV/Truck can ONLY park in REGULAR spots
-                    baseTypes = new SpotType[]{SpotType.REGULAR};
+                    // SUV/Truck can park in REGULAR + any RESERVED spot assigned to them
+                    baseTypes = new SpotType[]{SpotType.REGULAR, SpotType.RESERVED};
                     break;
                 case "Handicapped Vehicle":
                     // Handicapped vehicle can park in ANY spot type
                     baseTypes = new SpotType[]{SpotType.COMPACT, SpotType.REGULAR, SpotType.HANDICAP, SpotType.RESERVED};
                     break;
                 default:
-                    baseTypes = new SpotType[]{SpotType.REGULAR};
+                    baseTypes = new SpotType[]{SpotType.REGULAR, SpotType.RESERVED};
                     break;
             }
 
@@ -788,183 +842,300 @@ public class EntryExitPanel extends JPanel {
         private void searchVehicle() {
             String licensePlate = licensePlateSearchField.getText().trim().toUpperCase();
 
+            if (!validateExitInput(licensePlate)) {
+                return;
+            }
+
+            // Get parking session data
+            ParkingSessionData sessionData = retrieveParkingSession(licensePlate);
+            if (sessionData == null) {
+                return;
+            }
+
+            // Calculate parking duration and fees
+            FeeCalculation feeCalc = calculateParkingFees(sessionData);
+
+            // Display results
+            displayVehicleInfo(sessionData, feeCalc);
+            displayBillingDetails(sessionData, feeCalc);
+
+            totalDueLabel.setText(String.format("RM %.2f", feeCalc.totalDue));
+            processPaymentButton.setEnabled(true);
+        }
+
+        private boolean validateExitInput(String licensePlate) {
             if (licensePlate.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                     "Please enter license plate number!",
                     "Input Required",
                     JOptionPane.WARNING_MESSAGE);
-                return;
+                return false;
             }
             
-            // Check if vehicle is parked
             if (!historyController.isVehicleParked(licensePlate)) {
                 JOptionPane.showMessageDialog(this,
                     "Vehicle " + licensePlate + " is not currently parked!",
                     "Not Found",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+                return false;
             }
 
-            // Get parking session
+            return true;
+        }
+
+        private ParkingSessionData retrieveParkingSession(String licensePlate) {
             Map<String, Object> session = historyController.getActiveParkingSession(licensePlate);
             if (session == null) {
                 JOptionPane.showMessageDialog(this,
                     "Error retrieving parking session!",
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+                return null;
             }
 
-            String spotId = (String) session.get("spot_id");
-            LocalDateTime entryTime = (LocalDateTime) session.get("entry_time");
-            LocalDateTime exitTime = LocalDateTime.now();
+            return new ParkingSessionData(
+                licensePlate,
+                (String) session.get("spot_id"),
+                (LocalDateTime) session.get("entry_time"),
+                LocalDateTime.now()
+            );
+        }
 
-            // Debug output
-            System.out.println("🔍 Entry time: " + entryTime);
-            System.out.println("🔍 Exit time: " + exitTime);
+        private FeeCalculation calculateParkingFees(ParkingSessionData sessionData) {
+            // Calculate duration
+            DurationInfo duration = calculateDuration(sessionData.entryTime, sessionData.exitTime);
 
-            // Calculate ACTUAL parking duration for display
+            // Get vehicle and spot info
+            boolean hasHandicappedCard = vehicleController.hasHandicappedCard(sessionData.licensePlate);
+            String vehicleType = vehicleController.getVehicleType(sessionData.licensePlate);
+            SpotInfo spotInfo = getSpotInfo(sessionData.spotId);
+
+            // Calculate hourly rate
+            double hourlyRate = calculateHourlyRate(vehicleType, spotInfo.spotType, hasHandicappedCard);
+            double parkingFee = duration.billingHours * hourlyRate;
+
+            // Calculate fines
+            double overstayFine = calculateOverstayFine(sessionData, duration.totalHours);
+            double existingFines = fineController.getTotalUnpaidFines(sessionData.licensePlate);
+
+            return new FeeCalculation(
+                duration,
+                spotInfo,
+                vehicleType,
+                hasHandicappedCard,
+                hourlyRate,
+                parkingFee,
+                overstayFine,
+                existingFines,
+                parkingFee + overstayFine + existingFines
+            );
+        }
+
+        private DurationInfo calculateDuration(LocalDateTime entryTime, LocalDateTime exitTime) {
             long totalMinutes = ChronoUnit.MINUTES.between(entryTime, exitTime);
-            long actualHours = totalMinutes / 60;
-            long actualMinutes = totalMinutes % 60;
 
-            System.out.println("🔍 Total minutes: " + totalMinutes);
-            System.out.println("🔍 Actual Duration: " + actualHours + "h " + actualMinutes + "m");
-
-            // If duration is negative, something went wrong
             if (totalMinutes < 0) {
                 JOptionPane.showMessageDialog(this,
-                    "Error: Entry time is after exit time!\n" +
-                    "Entry: " + entryTime + "\n" +
-                    "Exit: " + exitTime + "\n" +
-                    "Please check the database.",
+                    "Error: Entry time is after exit time!",
                     "Invalid Time",
                     JOptionPane.ERROR_MESSAGE);
-                return;
+                return null;
             }
 
-            // Calculate BILLING hours (rounded up, minimum 1 hour)
+            long actualHours = totalMinutes / 60;
+            long actualMinutes = totalMinutes % 60;
+            long totalHours = ChronoUnit.HOURS.between(entryTime, exitTime);
+
+            // Calculate billing hours (rounded up, minimum 1 hour)
             long billingHours = actualHours;
             if (actualHours == 0 && actualMinutes > 0) {
-                billingHours = 1; // Minimum 1 hour charge
+                billingHours = 1;
             } else if (actualMinutes > 0) {
-                billingHours++; // Round up if there are extra minutes
+                billingHours++;
             }
-
-            // Ensure at least 1 hour minimum charge for billing
             if (billingHours == 0) billingHours = 1;
 
-            System.out.println("🔍 Billing Hours: " + billingHours);
+            return new DurationInfo(actualHours, actualMinutes, billingHours, totalHours);
+        }
 
-            // Check if vehicle has handicapped card and get vehicle type
-            boolean hasHandicappedCard = vehicleController.hasHandicappedCard(licensePlate);
-            String vehicleType = vehicleController.getVehicleType(licensePlate);
-            boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(vehicleType);
-
-            System.out.println("🔍 Vehicle Type: " + vehicleType);
-            System.out.println("🔍 Handicapped Card: " + (hasHandicappedCard ? "Yes" : "No"));
-
-            // Get spot info to calculate rate
+        private SpotInfo getSpotInfo(String spotId) {
             List<Map<String, Object>> spots = spotController.getAllSpotsForDisplay();
-            double hourlyRate = 5.0; // Default
-            String spotType = "REGULAR";
-
             for (Map<String, Object> spot : spots) {
                 if (spotId.equals(spot.get("spot_id"))) {
-                    spotType = (String) spot.get("spot_type");
-
-                    // Calculate rate based on vehicle type and spot type
-                    if (isHandicappedVehicle) {
-                        // Handicapped Vehicle: RM 2/hour everywhere, FREE in HANDICAP with card
-                        if (spotType.equals("HANDICAP") && hasHandicappedCard) {
-                            hourlyRate = 0.0;
-                            System.out.println("✅ FREE parking applied (Handicapped Vehicle + Handicapped spot + Card)");
-                        } else {
-                            hourlyRate = 2.0; // Discounted rate for handicapped vehicles
-                            System.out.println("✅ Handicapped Vehicle rate: RM 2.00/hr");
-                        }
-                    } else {
-                        // Regular vehicles
-                        hourlyRate = getHourlyRate(spotType);
-
-                        // FREE parking for ANY vehicle with handicapped card in HANDICAP spots
-                        if (spotType.equals("HANDICAP") && hasHandicappedCard) {
-                            hourlyRate = 0.0;
-                            System.out.println("✅ FREE parking applied (Handicapped spot + Card holder)");
-                        }
-                    }
-                    break;
+                    return new SpotInfo(
+                        spotId,
+                        (String) spot.get("spot_type"),
+                        getHourlyRate((String) spot.get("spot_type"))
+                    );
                 }
             }
+            return new SpotInfo(spotId, "REGULAR", 5.0);
+        }
 
-            // Calculate parking fee using BILLING hours (minimum 1 hour)
-            double parkingFee = billingHours * hourlyRate;
+        private double calculateHourlyRate(String vehicleType, String spotType, boolean hasHandicappedCard) {
+            boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(vehicleType);
 
-            // Check for overstay fine (calculate but don't save yet)
-            double fineFee = 0.0;
-            boolean hasOverstayed = false;
-            if (ChronoUnit.HOURS.between(entryTime, exitTime) > 24) {
-                hasOverstayed = true;
-                // Calculate the fine amount using the current strategy, but DON'T save to database yet
-                Duration overstayDuration = Duration.between(entryTime, exitTime);
-                fineFee = fineController.getCurrentStrategy().calculateFine(overstayDuration);
-                System.out.println("⚠️ Vehicle has overstayed! Fine amount: RM " + fineFee + " (not saved yet)");
+            if (isHandicappedVehicle) {
+                // Handicapped Vehicle: RM 2/hour everywhere, FREE in HANDICAP with card
+                if (spotType.equals("HANDICAP") && hasHandicappedCard) {
+                    System.out.println("✅ FREE parking (Handicapped Vehicle + Handicapped spot + Card)");
+                    return 0.0;
+                }
+                System.out.println("✅ Handicapped Vehicle rate: RM 2.00/hr");
+                return 2.0;
             }
 
-            // Get any existing unpaid fines from database
-            double existingFines = fineController.getTotalUnpaidFines(licensePlate);
+            // Regular vehicles - FREE in HANDICAP spots with card
+            double rate = getHourlyRate(spotType);
+            if (spotType.equals("HANDICAP") && hasHandicappedCard) {
+                System.out.println("✅ FREE parking (Handicapped spot + Card holder)");
+                return 0.0;
+            }
 
-            // Calculate total
-            double totalDue = parkingFee + fineFee + existingFines;
+            return rate;
+        }
 
-            // Display vehicle info with ACTUAL duration
+        private double calculateOverstayFine(ParkingSessionData sessionData, long totalHours) {
+            if (totalHours <= 24) {
+                return 0.0;
+            }
+
+            Duration overstayDuration = Duration.between(sessionData.entryTime, sessionData.exitTime);
+            double fine = fineController.getCurrentStrategy().calculateFine(overstayDuration);
+            System.out.println("⚠️ Vehicle overstayed! Fine: RM " + fine + " (not saved yet)");
+            return fine;
+        }
+
+        private void displayVehicleInfo(ParkingSessionData sessionData, FeeCalculation feeCalc) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            StringBuilder vehicleInfo = new StringBuilder();
-            vehicleInfo.append("LICENSE PLATE: ").append(licensePlate).append("\n");
-            vehicleInfo.append("PARKING SPOT: ").append(spotId).append("\n");
-            vehicleInfo.append("SPOT TYPE: ").append(spotType).append("\n");
-            vehicleInfo.append("ENTRY TIME: ").append(entryTime.format(formatter)).append("\n");
-            vehicleInfo.append("EXIT TIME: ").append(exitTime.format(formatter)).append("\n");
-            vehicleInfo.append("DURATION: ").append(actualHours).append(" hour(s) ").append(actualMinutes).append(" min(s)\n");
+            StringBuilder info = new StringBuilder();
+            info.append("LICENSE PLATE: ").append(sessionData.licensePlate).append("\n");
+            info.append("PARKING SPOT: ").append(sessionData.spotId).append("\n");
+            info.append("SPOT TYPE: ").append(feeCalc.spotInfo.spotType).append("\n");
+            info.append("ENTRY TIME: ").append(sessionData.entryTime.format(formatter)).append("\n");
+            info.append("EXIT TIME: ").append(sessionData.exitTime.format(formatter)).append("\n");
+            info.append("DURATION: ").append(feeCalc.duration.actualHours).append(" hour(s) ")
+                .append(feeCalc.duration.actualMinutes).append(" min(s)\n");
 
-            vehicleInfoArea.setText(vehicleInfo.toString());
+            vehicleInfoArea.setText(info.toString());
+        }
 
-            // Display billing details with BILLING hours
-            StringBuilder billDetails = new StringBuilder();
-            billDetails.append("BILLING BREAKDOWN\n");
-            billDetails.append("─────────────────────────────────────\n");
+        private void displayBillingDetails(ParkingSessionData sessionData, FeeCalculation feeCalc) {
+            StringBuilder bill = new StringBuilder();
+            bill.append("BILLING BREAKDOWN\n");
+            bill.append("─────────────────────────────────────\n");
 
-            if (spotType.equals("HANDICAP") && hasHandicappedCard && hourlyRate == 0.0) {
-                billDetails.append("Parking Fee:      RM 0.00 (FREE)\n");
-                billDetails.append("  (Handicapped spot + Card holder)\n");
-                billDetails.append(String.format("  (Would be: %d hours × RM 2.00/hr = RM %.2f)\n",
-                    billingHours, billingHours * 2.0));
-            } else if (isHandicappedVehicle && hourlyRate == 2.0) {
-                billDetails.append(String.format("Parking Fee:      RM %.2f\n", parkingFee));
-                billDetails.append(String.format("  (%d hours × RM %.2f/hr)\n", billingHours, hourlyRate));
-                billDetails.append("  (Handicapped Vehicle discounted rate)\n");
+            appendParkingFeeDetails(bill, feeCalc);
+            appendFineDetails(bill, feeCalc);
+
+            bill.append("─────────────────────────────────────\n");
+            bill.append(String.format("TOTAL DUE:        RM %.2f\n", feeCalc.totalDue));
+
+            billDetailsArea.setText(bill.toString());
+        }
+
+        private void appendParkingFeeDetails(StringBuilder bill, FeeCalculation feeCalc) {
+            boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(feeCalc.vehicleType);
+            boolean isFreeParking = feeCalc.spotInfo.spotType.equals("HANDICAP") &&
+                                    feeCalc.hasHandicappedCard && feeCalc.hourlyRate == 0.0;
+
+            if (isFreeParking) {
+                bill.append("Parking Fee:      RM 0.00 (FREE)\n");
+                bill.append("  (Handicapped spot + Card holder)\n");
+                bill.append(String.format("  (Would be: %d hours × RM 2.00/hr = RM %.2f)\n",
+                    feeCalc.duration.billingHours, feeCalc.duration.billingHours * 2.0));
+            } else if (isHandicappedVehicle && feeCalc.hourlyRate == 2.0) {
+                bill.append(String.format("Parking Fee:      RM %.2f\n", feeCalc.parkingFee));
+                bill.append(String.format("  (%d hours × RM %.2f/hr)\n",
+                    feeCalc.duration.billingHours, feeCalc.hourlyRate));
+                bill.append("  (Handicapped Vehicle discounted rate)\n");
             } else {
-                billDetails.append(String.format("Parking Fee:      RM %.2f\n", parkingFee));
-                billDetails.append(String.format("  (%d hours × RM %.2f/hr)\n", billingHours, hourlyRate));
-                if (billingHours > actualHours || (billingHours == 1 && actualHours == 0)) {
-                    billDetails.append("  (Minimum 1 hour charge applied)\n");
+                bill.append(String.format("Parking Fee:      RM %.2f\n", feeCalc.parkingFee));
+                bill.append(String.format("  (%d hours × RM %.2f/hr)\n",
+                    feeCalc.duration.billingHours, feeCalc.hourlyRate));
+                if (feeCalc.duration.billingHours > feeCalc.duration.actualHours ||
+                    (feeCalc.duration.billingHours == 1 && feeCalc.duration.actualHours == 0)) {
+                    bill.append("  (Minimum 1 hour charge applied)\n");
                 }
             }
-            if (fineFee > 0) {
-                billDetails.append(String.format("\nOverstay Fine:    RM %.2f\n", fineFee));
-                billDetails.append("  (Parking >24 hours - will be saved on exit)\n");
-            }
-            if (existingFines > 0) {
-                billDetails.append(String.format("\nExisting Unpaid:  RM %.2f\n", existingFines));
-                billDetails.append("  (Previous fines from database)\n");
-            }
-            billDetails.append("─────────────────────────────────────\n");
-            billDetails.append(String.format("TOTAL DUE:        RM %.2f\n", totalDue));
+        }
 
-            billDetailsArea.setText(billDetails.toString());
-            totalDueLabel.setText(String.format("RM %.2f", totalDue));
+        private void appendFineDetails(StringBuilder bill, FeeCalculation feeCalc) {
+            if (feeCalc.overstayFine > 0) {
+                bill.append(String.format("\nOverstay Fine:    RM %.2f\n", feeCalc.overstayFine));
+                bill.append("  (Parking >24 hours - will be saved on exit)\n");
+            }
+            if (feeCalc.existingFines > 0) {
+                bill.append(String.format("\nExisting Unpaid:  RM %.2f\n", feeCalc.existingFines));
+                bill.append("  (Previous fines from database)\n");
+            }
+        }
 
-            processPaymentButton.setEnabled(true);
+        // Inner classes for data encapsulation
+        private class ParkingSessionData {
+            String licensePlate;
+            String spotId;
+            LocalDateTime entryTime;
+            LocalDateTime exitTime;
+
+            ParkingSessionData(String licensePlate, String spotId, LocalDateTime entryTime, LocalDateTime exitTime) {
+                this.licensePlate = licensePlate;
+                this.spotId = spotId;
+                this.entryTime = entryTime;
+                this.exitTime = exitTime;
+            }
+        }
+
+        private class DurationInfo {
+            long actualHours;
+            long actualMinutes;
+            long billingHours;
+            long totalHours;
+
+            DurationInfo(long actualHours, long actualMinutes, long billingHours, long totalHours) {
+                this.actualHours = actualHours;
+                this.actualMinutes = actualMinutes;
+                this.billingHours = billingHours;
+                this.totalHours = totalHours;
+            }
+        }
+
+        private class SpotInfo {
+            String spotId;
+            String spotType;
+            double baseRate;
+
+            SpotInfo(String spotId, String spotType, double baseRate) {
+                this.spotId = spotId;
+                this.spotType = spotType;
+                this.baseRate = baseRate;
+            }
+        }
+
+        private class FeeCalculation {
+            DurationInfo duration;
+            SpotInfo spotInfo;
+            String vehicleType;
+            boolean hasHandicappedCard;
+            double hourlyRate;
+            double parkingFee;
+            double overstayFine;
+            double existingFines;
+            double totalDue;
+
+            FeeCalculation(DurationInfo duration, SpotInfo spotInfo, String vehicleType,
+                          boolean hasHandicappedCard, double hourlyRate, double parkingFee,
+                          double overstayFine, double existingFines, double totalDue) {
+                this.duration = duration;
+                this.spotInfo = spotInfo;
+                this.vehicleType = vehicleType;
+                this.hasHandicappedCard = hasHandicappedCard;
+                this.hourlyRate = hourlyRate;
+                this.parkingFee = parkingFee;
+                this.overstayFine = overstayFine;
+                this.existingFines = existingFines;
+                this.totalDue = totalDue;
+            }
         }
         
         private double getHourlyRate(String spotType) {

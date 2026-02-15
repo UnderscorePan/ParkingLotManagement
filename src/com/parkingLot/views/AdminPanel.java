@@ -277,43 +277,66 @@ public class AdminPanel extends JPanel {
         dialog.setSize(450, 350);
         dialog.setLocationRelativeTo(this);
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
 
         // Floor
+        gbc.gridx = 0; gbc.gridy = 0;
         JLabel floorLabel = new JLabel("Floor Number:");
+        formPanel.add(floorLabel, gbc);
+        gbc.gridx = 1;
         JSpinner floorSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        formPanel.add(floorSpinner, gbc);
 
         // Row
+        gbc.gridx = 0; gbc.gridy = 1;
         JLabel rowLabel = new JLabel("Row (A-Z):");
+        formPanel.add(rowLabel, gbc);
+        gbc.gridx = 1;
         JTextField rowField = new JTextField("A");
+        formPanel.add(rowField, gbc);
 
         // Spot Number
+        gbc.gridx = 0; gbc.gridy = 2;
         JLabel spotNumLabel = new JLabel("Spot Number:");
+        formPanel.add(spotNumLabel, gbc);
+        gbc.gridx = 1;
         JSpinner spotNumSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
+        formPanel.add(spotNumSpinner, gbc);
 
         // Spot Type
+        gbc.gridx = 0; gbc.gridy = 3;
         JLabel typeLabel = new JLabel("Spot Type:");
+        formPanel.add(typeLabel, gbc);
+        gbc.gridx = 1;
         JComboBox<SpotType> typeCombo = new JComboBox<>(SpotType.values());
+        formPanel.add(typeCombo, gbc);
 
-        // Reserved For (optional)
+        // Reserved For (initially hidden)
+        gbc.gridx = 0; gbc.gridy = 4;
         JLabel reservedLabel = new JLabel("Reserved For Plate:");
+        reservedLabel.setVisible(false);
+        formPanel.add(reservedLabel, gbc);
+        gbc.gridx = 1;
         JTextField reservedPlateField = new JTextField();
-        reservedPlateField.setToolTipText("Optional: Enter license plate for RESERVED spots");
+        reservedPlateField.setToolTipText("Enter license plate for this reserved spot");
+        reservedPlateField.setVisible(false);
+        formPanel.add(reservedPlateField, gbc);
 
-        formPanel.add(floorLabel);
-        formPanel.add(floorSpinner);
-        formPanel.add(rowLabel);
-        formPanel.add(rowField);
-        formPanel.add(spotNumLabel);
-        formPanel.add(spotNumSpinner);
-        formPanel.add(typeLabel);
-        formPanel.add(typeCombo);
-        formPanel.add(reservedLabel);
-        formPanel.add(reservedPlateField);
+        // Show/hide reserved field based on type selection
+        typeCombo.addActionListener(e -> {
+            boolean isReserved = typeCombo.getSelectedItem() == SpotType.RESERVED;
+            reservedLabel.setVisible(isReserved);
+            reservedPlateField.setVisible(isReserved);
+            dialog.revalidate();
+            dialog.repaint();
+        });
 
         // Info label
-        JLabel infoLabel = new JLabel("<html><i>Note: Reserved plate only applies to RESERVED type spots</i></html>");
+        JLabel infoLabel = new JLabel("<html><i>Note: Reserved spots require a license plate assignment</i></html>");
         infoLabel.setFont(new Font("Arial", Font.PLAIN, 10));
 
         // Button panel
@@ -329,21 +352,20 @@ public class AdminPanel extends JPanel {
                 SpotType type = (SpotType) typeCombo.getSelectedItem();
                 String reservedPlate = reservedPlateField.getText().trim().toUpperCase();
 
-                if (!reservedPlate.isEmpty() && type != SpotType.RESERVED) {
-                    int confirm = JOptionPane.showConfirmDialog(dialog,
-                        "Reserved plate is only for RESERVED type spots.\nContinue without reserving?",
-                        "Note",
-                        JOptionPane.YES_NO_OPTION);
-                    if (confirm != JOptionPane.YES_OPTION) {
-                        return;
-                    }
-                    reservedPlate = null;
-                }
-
+                // Validate row
                 if (row.length() != 1 || !Character.isLetter(row.charAt(0))) {
                     JOptionPane.showMessageDialog(dialog,
                         "Row must be a single letter (A-Z)",
                         "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Validate reserved plate for RESERVED spots
+                if (type == SpotType.RESERVED && reservedPlate.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Reserved spots require a license plate assignment!",
+                        "Missing License Plate",
                         JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -365,12 +387,12 @@ public class AdminPanel extends JPanel {
                 boolean success = spotController.saveParkingSpot(
                     newSpot,
                     LOT_ID,
-                    (type == SpotType.RESERVED && !reservedPlate.isEmpty()) ? reservedPlate : null
+                    (type == SpotType.RESERVED) ? reservedPlate : null
                 );
 
                 if (success) {
                     String msg = "Spot " + spotId + " added successfully!";
-                    if (type == SpotType.RESERVED && !reservedPlate.isEmpty()) {
+                    if (type == SpotType.RESERVED) {
                         msg += "\nReserved for: " + reservedPlate;
                     }
                     JOptionPane.showMessageDialog(dialog, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
