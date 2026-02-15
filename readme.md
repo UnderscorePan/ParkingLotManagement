@@ -115,7 +115,10 @@ Creates executable JAR in `target/` directory.
 ```bash
 mvn clean
 ```
-
+### 5. Run
+```
+java -jar target/ParkingLotManagement-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
 ## Project Structure
 ```
 ParkingLotManagement/

@@ -1,14 +1,31 @@
 package com.parkingLot;
 
+import com.parkingLot.views.MainFrame;
+import com.parkingLot.database.databaseConnection;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import java.sql.SQLException;
+
 public class Main {
     public static void main(String[] args) {
-        String url = "jdbc:sqlite:database/parking_lot.db";
+        // Initialize database first
         try {
-            Class.forName("org.sqlite.JDBC");
-            System.out.println("SQLite JDBC Driver loaded!");
-        } catch (ClassNotFoundException e) {
-            System.out.println("Driver not found!");
+            databaseConnection.initializeDatabase();
+            System.out.println("Database initialized successfully!");
+        } catch (SQLException e) {
+            System.err.println("Failed to initialize database: " + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                "Failed to initialize database!\n" + e.getMessage(),
+                "Database Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
+        // Launch the GUI
+        SwingUtilities.invokeLater(() -> {
+            MainFrame mainFrame = new MainFrame();
+            mainFrame.setVisible(true);
+        });
     }
 }

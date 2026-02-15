@@ -32,7 +32,7 @@ public class databaseConnection {
                     "plate_number TEXT PRIMARY KEY, " +
                     "vehicle_type TEXT, " +
                     "isVip INTEGER DEFAULT 0)");
-            
+
             stmt.execute("CREATE TABLE IF NOT EXISTS fines (" +
                     "fine_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "plate_number TEXT NOT NULL, " +
