@@ -231,7 +231,7 @@ public class ReportPanel extends JPanel {
                 totalVehiclesLabel.setText("Total Vehicles: " + tableModel.getRowCount());
                 
             } catch (Exception e) {
-                System.err.println("❌ Error loading vehicles: " + e.getMessage());
+                System.err.println("Error loading vehicles: " + e.getMessage());
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     "Error loading vehicles: " + e.getMessage(),
@@ -249,45 +249,36 @@ public class ReportPanel extends JPanel {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("❌ Error getting floor number: " + e.getMessage());
+                System.err.println("Error getting floor number: " + e.getMessage());
             }
             return 0;
         }
         
         private double getHourlyRateForVehicle(String licensePlate, String spotId, String vehicleType) {
             try {
-                boolean hasHandicappedCard = vehicleController.hasHandicappedCard(licensePlate);
                 String spotType = getSpotType(spotId);
                 
-                System.out.println("🔍 Rate Calculation for " + licensePlate);
+                System.out.println("Rate Calculation for " + licensePlate);
                 System.out.println("   Spot Type: " + spotType + " | Vehicle Type: " + vehicleType);
-                System.out.println("   Has Handicapped Card: " + hasHandicappedCard);
                 
                 boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(vehicleType);
                 
                 if (isHandicappedVehicle) {
-                    if ("HANDICAP".equals(spotType) && hasHandicappedCard) {
-                        System.out.println("   Rate: RM 0.00 (FREE - Handicapped Vehicle + Card)");
-                        return 0.0; // FREE
+                    if ("HANDICAP".equals(spotType)) {
+                        System.out.println("   Rate: RM 0.00 (FREE - Handicapped Vehicle in Handicap spot)");
+                        return 0.0; 
                     }
                     System.out.println("   Rate: RM 2.00 (Handicapped Vehicle)");
-                    return 2.0; // RM 2/hour for handicapped vehicles
+                    return 2.0;
                 }
                 
-                // Regular vehicles - FREE in HANDICAP spots with card
-                if ("HANDICAP".equals(spotType) && hasHandicappedCard) {
-                    System.out.println("   Rate: RM 0.00 (FREE - Handicap Spot + Card)");
-                    return 0.0; // FREE
-                }
-                
-                // Get base rate for spot type
                 double rate = getBaseRateForSpotType(spotType);
                 System.out.println("   Rate: RM " + rate + " (Base rate for " + spotType + ")");
                 return rate;
                 
             } catch (Exception e) {
-                System.err.println("❌ Error calculating hourly rate: " + e.getMessage());
-                return 5.0; // Default rate
+                System.err.println("Error calculating hourly rate: " + e.getMessage());
+                return 5.0;
             }
         }
         
@@ -300,7 +291,7 @@ public class ReportPanel extends JPanel {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("❌ Error getting spot type: " + e.getMessage());
+                System.err.println("Error getting spot type: " + e.getMessage());
             }
             return "REGULAR";
         }
@@ -393,7 +384,7 @@ public class ReportPanel extends JPanel {
                 }
                 
             } catch (Exception e) {
-                System.err.println("❌ Error searching vehicles: " + e.getMessage());
+                System.err.println("Error searching vehicles: " + e.getMessage());
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     "Error searching vehicles: " + e.getMessage(),
@@ -582,7 +573,7 @@ public class ReportPanel extends JPanel {
                 summaryArea.setText(summary.toString());
                 
             } catch (Exception e) {
-                System.err.println("❌ Error generating revenue report: " + e.getMessage());
+                System.err.println("Error generating revenue report: " + e.getMessage());
                 e.printStackTrace();
                 JOptionPane.showMessageDialog(this,
                     "Error generating report: " + e.getMessage(),
@@ -656,11 +647,8 @@ public class ReportPanel extends JPanel {
         }
         
         public void loadOccupancyData() {
-            // ============ COMPOSITE PATTERN DEMONSTRATION ============
-            // Build parking lot structure from database using Composite Pattern
             com.parkingLot.models.ParkingLot parkingLot = com.parkingLot.utils.ParkingLotBuilder.buildFromDatabase();
             
-            // Use composite pattern methods to get statistics recursively
             int totalSpots = parkingLot.getTotalSpots();
             int occupiedSpots = parkingLot.getOccupiedSpots();
             int availableSpots = totalSpots - occupiedSpots;
@@ -671,19 +659,19 @@ public class ReportPanel extends JPanel {
             summary.append("╔════════════════════════════════════════════╗\n");
             summary.append("║     PARKING LOT OCCUPANCY SUMMARY          ║\n");
             summary.append("╚════════════════════════════════════════════╝\n\n");
-            summary.append(String.format("📊 Total Parking Spots:     %d\n", totalSpots));
-            summary.append(String.format("🚗 Occupied Spots:          %d\n", occupiedSpots));
-            summary.append(String.format("✅ Available Spots:         %d\n", availableSpots));
-            summary.append(String.format("📈 Overall Occupancy Rate:  %.1f%%\n\n", occupancyRate));
+            summary.append(String.format("Total Parking Spots:     %d\n", totalSpots));
+            summary.append(String.format("Occupied Spots:          %d\n", occupiedSpots));
+            summary.append(String.format("Available Spots:         %d\n", availableSpots));
+            summary.append(String.format("Overall Occupancy Rate:  %.1f%%\n\n", occupancyRate));
             
             if (occupancyRate >= 90) {
-                summary.append("⚠️  Status: NEARLY FULL - Limited availability\n");
+                summary.append("Status: NEARLY FULL - Limited availability\n");
             } else if (occupancyRate >= 70) {
-                summary.append("⚡ Status: BUSY - Moderate availability\n");
+                summary.append("Status: BUSY - Moderate availability\n");
             } else if (occupancyRate >= 40) {
-                summary.append("✓  Status: NORMAL - Good availability\n");
+                summary.append("Status: NORMAL - Good availability\n");
             } else {
-                summary.append("✓  Status: QUIET - Plenty of space available\n");
+                summary.append("Status: QUIET - Plenty of space available\n");
             }
             
             summary.append("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
@@ -715,7 +703,7 @@ public class ReportPanel extends JPanel {
                 });
             }
             
-            System.out.println("✅ Occupancy data loaded using Composite Pattern");
+            System.out.println("Occupancy data loaded using Composite Pattern");
         }
     }
     
@@ -828,7 +816,7 @@ public class ReportPanel extends JPanel {
                 vehicleCount = uniquePlates.size();
                 
             } catch (java.sql.SQLException e) {
-                System.err.println("❌ Error loading fines data: " + e.getMessage());
+                System.err.println("Error loading fines data: " + e.getMessage());
                 e.printStackTrace();
             }
             
@@ -836,7 +824,7 @@ public class ReportPanel extends JPanel {
             totalVehiclesLabel.setText("Vehicles with Fines: " + vehicleCount);
             totalFinesLabel.setText("Total Unpaid: RM " + String.format("%.2f", totalUnpaid));
             
-            System.out.println("✅ Fines data loaded: " + tableModel.getRowCount() + " unpaid fines");
+            System.out.println("Fines data loaded: " + tableModel.getRowCount() + " unpaid fines");
         }
     }
     

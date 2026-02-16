@@ -25,20 +25,18 @@ public class VehicleController {
             pstmt.setString(2, vehicle.getType().toString());
             
             pstmt.executeUpdate();
-            System.out.println("✅ Vehicle " + vehicle.getLicensePlate() + " saved to database");
+            System.out.println("Vehicle " + vehicle.getLicensePlate() + " saved to database");
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error saving vehicle: " + e.getMessage());
+            System.err.println("Error saving vehicle: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
 
     public boolean updateVehicleExit(String licensePlate, LocalDateTime exitTime) {
-        // This method is no longer needed as exit_time is not stored in vehicles table
-        // Exit time is tracked in parking_history table
-        System.out.println("✅ Vehicle " + licensePlate + " exit processed");
+        System.out.println("Vehicle " + licensePlate + " exit processed");
         return true;
     }
 
@@ -52,7 +50,7 @@ public class VehicleController {
             return pstmt.executeQuery();
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving vehicle: " + e.getMessage());
+            System.err.println("Error retrieving vehicle: " + e.getMessage());
             return null;
         }
     }
@@ -66,7 +64,7 @@ public class VehicleController {
             return stmt.executeQuery(sql);
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving active vehicles: " + e.getMessage());
+            System.err.println("Error retrieving active vehicles: " + e.getMessage());
             return null;
         }
     }
@@ -86,7 +84,7 @@ public class VehicleController {
             return false;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error checking vehicle existence: " + e.getMessage());
+            System.err.println("Error checking vehicle existence: " + e.getMessage());
             return false;
         }
     }
@@ -107,13 +105,13 @@ public class VehicleController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error retrieving vehicles for display: " + e.getMessage());
+            System.err.println("Error retrieving vehicles for display: " + e.getMessage());
         }
         
         return vehicles;
     }
 
-    public boolean registerVehicle(String licensePlate, String vehicleType, boolean hasHandicappedCard) {
+    public boolean registerVehicle(String licensePlate, String vehicleType) {
         // Use INSERT OR REPLACE to update vehicle type if it already exists
         String sql = "INSERT OR REPLACE INTO vehicles (plate_number, vehicle_type) VALUES (?, ?)";
         
@@ -124,19 +122,14 @@ public class VehicleController {
             pstmt.setString(2, vehicleType);
 
             pstmt.executeUpdate();
-            System.out.println("✅ Vehicle " + licensePlate + " registered/updated successfully");
+            System.out.println("Vehicle " + licensePlate + " registered/updated successfully");
             return true;
 
         } catch (SQLException e) {
-            System.err.println("❌ Error registering vehicle: " + e.getMessage());
+            System.err.println("Error registering vehicle: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
-    }
-
-    public boolean hasHandicappedCard(String licensePlate) {
-        // Handicapped card status is no longer stored in vehicles table
-        return false; // Default to no card
     }
 
     public String getVehicleType(String licensePlate) {
@@ -152,7 +145,7 @@ public class VehicleController {
             }
 
         } catch (SQLException e) {
-            System.err.println("❌ Error getting vehicle type: " + e.getMessage());
+            System.err.println("Error getting vehicle type: " + e.getMessage());
         }
 
         return null;

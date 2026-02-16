@@ -95,7 +95,6 @@ public class EntryExitPanel extends JPanel {
     class VehicleEntryPanel extends JPanel {
         private JTextField licensePlateField;
         private JComboBox<String> vehicleTypeCombo;
-        private JCheckBox handicappedCheckBox;
         private JTable availableSpotsTable;
         private DefaultTableModel spotsTableModel;
         private JTextArea ticketArea;
@@ -153,14 +152,8 @@ public class EntryExitPanel extends JPanel {
             vehicleTypeCombo.setFont(new Font("Arial", Font.PLAIN, 14));
             formPanel.add(vehicleTypeCombo, gbc);
             
-            // Handicapped Card
-            gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-            handicappedCheckBox = new JCheckBox("Handicapped Card Holder");
-            handicappedCheckBox.setFont(new Font("Arial", Font.PLAIN, 13));
-            formPanel.add(handicappedCheckBox, gbc);
-            
             // Search button
-            gbc.gridy = 3;
+            gbc.gridy = 2;
             searchSpotsButton = createStyledButton("Search Available Spots", new Color(52, 152, 219));
             searchSpotsButton.addActionListener(e -> searchAvailableSpots());
             formPanel.add(searchSpotsButton, gbc);
@@ -178,20 +171,19 @@ public class EntryExitPanel extends JPanel {
                 "PARKING INSTRUCTIONS:\n\n" +
                 "1. Enter vehicle license plate number\n" +
                 "2. Select vehicle type\n" +
-                "3. Check handicapped card if applicable\n" +
-                "4. Click 'Search Available Spots'\n" +
-                "5. Select a suitable spot from the list\n" +
-                "6. Click 'Park Vehicle' to confirm\n" +
-                "7. Print/save your parking ticket\n\n" +
+                "3. Click 'Search Available Spots'\n" +
+                "4. Select a suitable spot from the list\n" +
+                "5. Click 'Park Vehicle' to confirm\n" +
+                "6. Print/save your parking ticket\n\n" +
                 "SPOT ELIGIBILITY:\n" +
                 "• Motorcycle → Compact only\n" +
                 "• Car → Compact or Regular\n" +
                 "• SUV/Truck → Regular only\n" +
-                "• Handicapped → Any spot (RM 2/hr)\n\n" +
+                "• Handicapped Vehicle → Any spot\n\n" +
                 "RATES:\n" +
                 "• Compact: RM 2/hour\n" +
                 "• Regular: RM 5/hour\n" +
-                "• Handicapped: RM 2/hour (FREE for card)\n" +
+                "• Handicapped: RM 2/hour (FREE in handicap spots)\n" +
                 "• Reserved: RM 10/hour"
             );
             
@@ -262,7 +254,6 @@ public class EntryExitPanel extends JPanel {
         private void searchAvailableSpots() {
             String licensePlate = licensePlateField.getText().trim();
             String vehicleType = (String) vehicleTypeCombo.getSelectedItem();
-            boolean hasHandicappedCard = handicappedCheckBox.isSelected();
 
             if (!validateSearchInput(licensePlate)) {
                 return;
@@ -270,12 +261,12 @@ public class EntryExitPanel extends JPanel {
 
             // Clear and search for compatible spots
             spotsTableModel.setRowCount(0);
-            SpotType[] compatibleSpotTypes = getCompatibleSpotTypes(vehicleType, hasHandicappedCard);
+            SpotType[] compatibleSpotTypes = getCompatibleSpotTypes(vehicleType);
 
-            int availableCount = loadCompatibleSpots(licensePlate, vehicleType, hasHandicappedCard, compatibleSpotTypes);
+            int availableCount = loadCompatibleSpots(licensePlate, vehicleType, compatibleSpotTypes);
 
             parkVehicleButton.setEnabled(availableCount > 0);
-            showSearchResult(availableCount, vehicleType, hasHandicappedCard);
+            showSearchResult(availableCount, vehicleType);
         }
 
         private boolean validateSearchInput(String licensePlate) {
@@ -299,7 +290,7 @@ public class EntryExitPanel extends JPanel {
         }
 
         private int loadCompatibleSpots(String licensePlate, String vehicleType,
-                                         boolean hasHandicappedCard, SpotType[] compatibleSpotTypes) {
+                                         SpotType[] compatibleSpotTypes) {
             List<Map<String, Object>> allSpots = spotController.getAllSpotsForDisplay();
             int availableCount = 0;
 
@@ -311,7 +302,7 @@ public class EntryExitPanel extends JPanel {
                     // Show spot if: it's compatible OR it's reserved for this vehicle
                     if (isMyReservedSpot || isSpotCompatible(spot, compatibleSpotTypes)) {
                         if (canVehicleUseSpot(spot, licensePlate)) {
-                            addSpotToTable(spot, licensePlate, vehicleType, hasHandicappedCard);
+                            addSpotToTable(spot, licensePlate, vehicleType);
                             availableCount++;
                         }
                     }
@@ -364,14 +355,14 @@ public class EntryExitPanel extends JPanel {
         }
 
         private void addSpotToTable(Map<String, Object> spot, String licensePlate,
-                                     String vehicleType, boolean hasHandicappedCard) {
+                                     String vehicleType) {
             String spotId = (String) spot.get("spot_id");
             int floor = (Integer) spot.get("floor_number");
             String spotType = (String) spot.get("spot_type");
             String reservedForPlate = (String) spot.get("reserved_for_plate");
 
-            // Get rate with special handling for vehicle types
-            String rate = calculateDisplayRate(spotType, vehicleType, hasHandicappedCard);
+            // Get rate based on vehicle type
+            String rate = calculateDisplayRate(spotType, vehicleType);
 
             // Add indicator if this is user's reserved spot
             if (isReservedForVehicle(reservedForPlate, licensePlate)) {
@@ -386,32 +377,26 @@ public class EntryExitPanel extends JPanel {
                    licensePlate.equalsIgnoreCase(reservedForPlate);
         }
 
-        private String calculateDisplayRate(String spotType, String vehicleType, boolean hasHandicappedCard) {
+        private String calculateDisplayRate(String spotType, String vehicleType) {
             if (vehicleType.equals("Handicapped Vehicle")) {
-                return getRateForHandicappedVehicle(spotType, hasHandicappedCard);
+                return getRateForHandicappedVehicle(spotType);
             }
-            return getRateForType(spotType, hasHandicappedCard);
+            return getRateForType(spotType);
         }
 
-        private void showSearchResult(int availableCount, String vehicleType, boolean hasHandicappedCard) {
+        private void showSearchResult(int availableCount, String vehicleType) {
             if (availableCount == 0) {
                 String message = "No available spots for " + vehicleType + "!";
-                if (hasHandicappedCard) {
-                    message += "\n(Including handicapped spots)";
-                }
                 JOptionPane.showMessageDialog(this, message, "No Available Spots",
                     JOptionPane.WARNING_MESSAGE);
             } else {
                 String message = "Found " + availableCount + " available spot(s) for " + vehicleType;
-                if (hasHandicappedCard) {
-                    message += "\n(Including handicapped spots with card)";
-                }
                 JOptionPane.showMessageDialog(this, message, "Spots Found",
                     JOptionPane.INFORMATION_MESSAGE);
             }
         }
 
-        private SpotType[] getCompatibleSpotTypes(String vehicleType, boolean hasHandicappedCard) {
+        private SpotType[] getCompatibleSpotTypes(String vehicleType) {
             SpotType[] baseTypes;
 
             switch (vehicleType) {
@@ -436,35 +421,24 @@ public class EntryExitPanel extends JPanel {
                     break;
             }
 
-            // If vehicle has handicapped card (but is not Handicapped Vehicle type),
-            // add HANDICAP spots to compatible types
-            if (hasHandicappedCard && !vehicleType.equals("Handicapped Vehicle")) {
-                SpotType[] withHandicap = new SpotType[baseTypes.length + 1];
-                System.arraycopy(baseTypes, 0, withHandicap, 0, baseTypes.length);
-                withHandicap[baseTypes.length] = SpotType.HANDICAP;
-                return withHandicap;
-            }
-
             return baseTypes;
         }
 
-        private String getRateForType(String type, boolean hasHandicappedCard) {
+        private String getRateForType(String type) {
             switch (type) {
                 case "COMPACT": return "RM 2.00/hr";
                 case "REGULAR": return "RM 5.00/hr";
-                case "HANDICAP":
-                    // FREE only if handicapped card holder parks in handicapped spot
-                    return hasHandicappedCard ? "FREE (Handicapped Card)" : "RM 2.00/hr";
+                case "HANDICAP": return "RM 2.00/hr";
                 case "RESERVED": return "RM 10.00/hr";
                 default: return "RM 5.00/hr";
             }
         }
         
-        private String getRateForHandicappedVehicle(String spotType, boolean hasHandicappedCard) {
+        private String getRateForHandicappedVehicle(String spotType) {
             // Handicapped Vehicle gets RM 2/hour everywhere
-            // Except in HANDICAP spots with card = FREE
-            if (spotType.equals("HANDICAP") && hasHandicappedCard) {
-                return "FREE (Handicapped Card)";
+            // Except in HANDICAP spots = FREE
+            if (spotType.equals("HANDICAP")) {
+                return "FREE (Handicapped Vehicle)";
             }
             return "RM 2.00/hr (Handicapped Vehicle Rate)";
         }
@@ -482,16 +456,15 @@ public class EntryExitPanel extends JPanel {
             String spotId = (String) spotsTableModel.getValueAt(selectedRow, 0);
             String licensePlate = licensePlateField.getText().trim().toUpperCase();
             String vehicleTypeStr = (String) vehicleTypeCombo.getSelectedItem();
-            boolean isHandicapped = handicappedCheckBox.isSelected();
             
             try {
                 // Create vehicle object
                 VehicleType vType = getVehicleType(vehicleTypeStr);
-                Vehicle vehicle = createVehicle(licensePlate, vType, isHandicapped);
+                Vehicle vehicle = createVehicle(licensePlate, vType);
                 vehicle.setEntryTime(LocalDateTime.now());
 
                 // Save vehicle to database if new
-                vehicleController.registerVehicle(licensePlate, vType.toString(), isHandicapped);
+                vehicleController.registerVehicle(licensePlate, vType.toString());
 
                 // Update spot status to occupied
                 boolean spotUpdated = spotController.updateSpotStatus(spotId, 1, licensePlate);
@@ -510,7 +483,7 @@ public class EntryExitPanel extends JPanel {
                 }
 
                 // Generate ticket
-                String ticket = generateTicket(spotId, licensePlate, vehicleTypeStr, isHandicapped);
+                String ticket = generateTicket(spotId, licensePlate, vehicleTypeStr);
                 ticketArea.setText(ticket);
 
                 JOptionPane.showMessageDialog(this,
@@ -524,7 +497,6 @@ public class EntryExitPanel extends JPanel {
                 // Clear form
                 licensePlateField.setText("");
                 vehicleTypeCombo.setSelectedIndex(0);
-                handicappedCheckBox.setSelected(false);
                 spotsTableModel.setRowCount(0);
                 parkVehicleButton.setEnabled(false);
 
@@ -547,7 +519,7 @@ public class EntryExitPanel extends JPanel {
             }
         }
 
-        private Vehicle createVehicle(String licensePlate, VehicleType type, boolean hasHandicappedCard) {
+        private Vehicle createVehicle(String licensePlate, VehicleType type) {
             Vehicle vehicle;
             switch (type) {
                 case MOTORCYCLE:
@@ -567,7 +539,7 @@ public class EntryExitPanel extends JPanel {
             return vehicle;
         }
         
-        private String generateTicket(String spotId, String licensePlate, String vehicleType, boolean isHandicapped) {
+        private String generateTicket(String spotId, String licensePlate, String vehicleType) {
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -582,9 +554,6 @@ public class EntryExitPanel extends JPanel {
             ticket.append(String.format(" Vehicle Type:  %-38s \n", vehicleType));
             ticket.append(String.format(" Parking Spot:  %-38s \n", spotId));
             ticket.append(String.format(" Entry Time:    %-38s \n", now.format(formatter)));
-            if (isHandicapped) {
-                ticket.append(" Handicapped:   YES (Card Holder)   \n");
-            }
             ticket.append("-----------------------------\n");
             ticket.append("IMPORTANT:  \n");
             ticket.append(" - Keep this ticket safe \n");
@@ -954,12 +923,11 @@ public class EntryExitPanel extends JPanel {
             DurationInfo duration = calculateDuration(sessionData.entryTime, sessionData.exitTime);
 
             // Get vehicle and spot info
-            boolean hasHandicappedCard = vehicleController.hasHandicappedCard(sessionData.licensePlate);
             String vehicleType = vehicleController.getVehicleType(sessionData.licensePlate);
             SpotInfo spotInfo = getSpotInfo(sessionData.spotId);
 
             // Calculate hourly rate
-            double hourlyRate = calculateHourlyRate(vehicleType, spotInfo.spotType, hasHandicappedCard);
+            double hourlyRate = calculateHourlyRate(vehicleType, spotInfo.spotType);
             double parkingFee = duration.billingHours * hourlyRate;
 
             // Calculate fines
@@ -970,7 +938,6 @@ public class EntryExitPanel extends JPanel {
                 duration,
                 spotInfo,
                 vehicleType,
-                hasHandicappedCard,
                 hourlyRate,
                 parkingFee,
                 overstayFine,
@@ -1020,27 +987,21 @@ public class EntryExitPanel extends JPanel {
             return new SpotInfo(spotId, "REGULAR", 5.0);
         }
 
-        private double calculateHourlyRate(String vehicleType, String spotType, boolean hasHandicappedCard) {
+        private double calculateHourlyRate(String vehicleType, String spotType) {
             boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(vehicleType);
 
             if (isHandicappedVehicle) {
-                // Handicapped Vehicle: RM 2/hour everywhere, FREE in HANDICAP with card
-                if (spotType.equals("HANDICAP") && hasHandicappedCard) {
-                    System.out.println("✅ FREE parking (Handicapped Vehicle + Handicapped spot + Card)");
+                // Handicapped Vehicle: RM 2/hour everywhere, FREE in HANDICAP spots
+                if (spotType.equals("HANDICAP")) {
+                    System.out.println("FREE parking (Handicapped Vehicle in Handicap spot)");
                     return 0.0;
                 }
-                System.out.println("✅ Handicapped Vehicle rate: RM 2.00/hr");
+                System.out.println("Handicapped Vehicle rate: RM 2.00/hr");
                 return 2.0;
             }
 
-            // Regular vehicles - FREE in HANDICAP spots with card
-            double rate = getHourlyRate(spotType);
-            if (spotType.equals("HANDICAP") && hasHandicappedCard) {
-                System.out.println("✅ FREE parking (Handicapped spot + Card holder)");
-                return 0.0;
-            }
-
-            return rate;
+            // Regular vehicles - standard rates
+            return getHourlyRate(spotType);
         }
 
         private double calculateOverstayFine(ParkingSessionData sessionData, long totalHours) {
@@ -1050,7 +1011,7 @@ public class EntryExitPanel extends JPanel {
 
             Duration overstayDuration = Duration.between(sessionData.entryTime, sessionData.exitTime);
             double fine = fineController.getCurrentStrategy().calculateFine(overstayDuration);
-            System.out.println("⚠️ Vehicle overstayed! Fine: RM " + fine + " (not saved yet)");
+            System.out.println("Vehicle overstayed! Fine: RM " + fine + " (not saved yet)");
             return fine;
         }
 
@@ -1108,11 +1069,11 @@ public class EntryExitPanel extends JPanel {
         private void appendParkingFeeDetails(StringBuilder bill, FeeCalculation feeCalc) {
             boolean isHandicappedVehicle = "HANDICAP_VEHICLE".equals(feeCalc.vehicleType);
             boolean isFreeParking = feeCalc.spotInfo.spotType.equals("HANDICAP") &&
-                                    feeCalc.hasHandicappedCard && feeCalc.hourlyRate == 0.0;
+                                    isHandicappedVehicle && feeCalc.hourlyRate == 0.0;
 
             if (isFreeParking) {
                 bill.append("Parking Fee:      RM 0.00 (FREE)\n");
-                bill.append("  (Handicapped spot + Card holder)\n");
+                bill.append("  (Handicapped Vehicle in Handicap spot)\n");
                 bill.append(String.format("  (Would be: %d hours × RM 2.00/hr = RM %.2f)\n",
                     feeCalc.duration.billingHours, feeCalc.duration.billingHours * 2.0));
             } else if (isHandicappedVehicle && feeCalc.hourlyRate == 2.0) {
@@ -1187,7 +1148,6 @@ public class EntryExitPanel extends JPanel {
             DurationInfo duration;
             SpotInfo spotInfo;
             String vehicleType;
-            boolean hasHandicappedCard;
             double hourlyRate;
             double parkingFee;
             double overstayFine;
@@ -1195,12 +1155,11 @@ public class EntryExitPanel extends JPanel {
             double totalDue;
 
             FeeCalculation(DurationInfo duration, SpotInfo spotInfo, String vehicleType,
-                          boolean hasHandicappedCard, double hourlyRate, double parkingFee,
+                          double hourlyRate, double parkingFee,
                           double overstayFine, double existingFines, double totalDue) {
                 this.duration = duration;
                 this.spotInfo = spotInfo;
                 this.vehicleType = vehicleType;
-                this.hasHandicappedCard = hasHandicappedCard;
                 this.hourlyRate = hourlyRate;
                 this.parkingFee = parkingFee;
                 this.overstayFine = overstayFine;
@@ -1210,13 +1169,13 @@ public class EntryExitPanel extends JPanel {
         }
         
         private double getHourlyRate(String spotType) {
-            switch (spotType) {
-                case "COMPACT": return 2.0;
-                case "REGULAR": return 5.0;
-                case "HANDICAP": return 2.0;
-                case "RESERVED": return 10.0;
-                default: return 5.0;
-            }
+            return switch (spotType) {
+                case "COMPACT" -> 2.0;
+                case "REGULAR" -> 5.0;
+                case "HANDICAP" -> 2.0;
+                case "RESERVED" -> 10.0;
+                default -> 5.0;
+            };
         }
 
         private void processPayment() {
@@ -1301,9 +1260,9 @@ public class EntryExitPanel extends JPanel {
                 if (!payWithoutFine) {
                     fineAmount = unpaidFines;
                     fineController.markAllFinesAsPaid(licensePlate);
-                    System.out.println("✅ All fines marked as paid for " + licensePlate);
+                    System.out.println("All fines marked as paid for " + licensePlate);
                 } else {
-                    System.out.println("ℹ️ Fines NOT paid - user chose to pay parking fee only");
+                    System.out.println("Fines NOT paid - user chose to pay parking fee only");
                 }
 
                 // Determine transaction type based on what's included in the total
@@ -1347,7 +1306,7 @@ public class EntryExitPanel extends JPanel {
                 currentFeeCalculation = null;
 
                 String fineMessage = payWithoutFine && unpaidFines > 0 
-                    ? "\n⚠️ Note: Vehicle still has RM " + String.format("%.2f", unpaidFines) + " in unpaid fines."
+                    ? "\nNote: Vehicle still has RM " + String.format("%.2f", unpaidFines) + " in unpaid fines."
                     : "";
 
                 JOptionPane.showMessageDialog(this,

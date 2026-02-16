@@ -18,17 +18,6 @@ public class TransactionController {
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     
-    /**
-     * Save a transaction to the database
-     * @param licensePlate Vehicle license plate
-     * @param amount Total transaction amount
-     * @param paymentMethod Payment method (Cash, Card, E-Wallet)
-     * @param transactionType Type of transaction (PARKING_FEE, FINE_PAYMENT, PARKING_AND_FINE)
-     * @param transactionDate Date and time of transaction
-     * @param parkingFee Parking fee amount
-     * @param fineAmount Fine amount
-     * @return true if successful, false otherwise
-     */
     public boolean saveTransaction(String licensePlate, double amount, String paymentMethod, 
                                    String transactionType, LocalDateTime transactionDate,
                                    double parkingFee, double fineAmount) {
@@ -47,30 +36,23 @@ public class TransactionController {
             pstmt.setDouble(7, fineAmount);
             
             pstmt.executeUpdate();
-            System.out.println("✅ Transaction saved: " + licensePlate + " - RM " + amount + " (" + transactionType + ")");
+            System.out.println("Transaction saved: " + licensePlate + " - RM " + amount + " (" + transactionType + ")");
             System.out.println("   Parking: RM " + parkingFee + " | Fines: RM " + fineAmount);
             return true;
             
         } catch (SQLException e) {
-            System.err.println("❌ Error saving transaction: " + e.getMessage());
+            System.err.println("Error saving transaction: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
     }
     
-    /**
-     * Save a transaction to the database (backward compatibility - without parking_fee and fine_amount)
-     * @deprecated Use saveTransaction with parkingFee and fineAmount parameters
-     */
     @Deprecated
     public boolean saveTransaction(String licensePlate, double amount, String paymentMethod, 
                                    String transactionType, LocalDateTime transactionDate) {
         return saveTransaction(licensePlate, amount, paymentMethod, transactionType, transactionDate, 0, 0);
     }
     
-    /**
-     * Get all transactions for a specific vehicle
-     */
     public List<Map<String, Object>> getTransactionsByVehicle(String licensePlate) {
         List<Map<String, Object>> transactions = new ArrayList<>();
         String sql = "SELECT * FROM transactions WHERE plate_number = ? ORDER BY transaction_date DESC";
@@ -95,15 +77,12 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting transactions: " + e.getMessage());
+            System.err.println("Error getting transactions: " + e.getMessage());
         }
         
         return transactions;
     }
     
-    /**
-     * Get all transactions within a date range
-     */
     public List<Map<String, Object>> getTransactionsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         List<Map<String, Object>> transactions = new ArrayList<>();
         String sql = "SELECT * FROM transactions WHERE transaction_date BETWEEN ? AND ? ORDER BY transaction_date DESC";
@@ -129,16 +108,12 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting transactions by date range: " + e.getMessage());
+            System.err.println("Error getting transactions by date range: " + e.getMessage());
         }
         
         return transactions;
     }
 
-    
-    /**
-     * Get all transactions
-     */
     public List<Map<String, Object>> getAllTransactions() {
         List<Map<String, Object>> transactions = new ArrayList<>();
         String sql = "SELECT * FROM transactions ORDER BY transaction_date DESC";
@@ -161,15 +136,12 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting all transactions: " + e.getMessage());
+            System.err.println("Error getting all transactions: " + e.getMessage());
         }
         
         return transactions;
     }
     
-    /**
-     * Get total revenue from all transactions
-     */
     public double getTotalRevenue() {
         String sql = "SELECT SUM(amount) as total FROM transactions";
         
@@ -182,15 +154,12 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting total revenue: " + e.getMessage());
+            System.err.println("Error getting total revenue: " + e.getMessage());
         }
         
         return 0.0;
     }
     
-    /**
-     * Get revenue by payment method
-     */
     public Map<String, Double> getRevenueByPaymentMethod() {
         Map<String, Double> revenueMap = new HashMap<>();
         String sql = "SELECT payment_method, SUM(amount) as total FROM transactions GROUP BY payment_method";
@@ -204,15 +173,12 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting revenue by payment method: " + e.getMessage());
+            System.err.println("Error getting revenue by payment method: " + e.getMessage());
         }
         
         return revenueMap;
     }
     
-    /**
-     * Get revenue by transaction type
-     */
     public Map<String, Double> getRevenueByTransactionType() {
         Map<String, Double> revenueMap = new HashMap<>();
         String sql = "SELECT transaction_type, SUM(amount) as total FROM transactions GROUP BY transaction_type";
@@ -226,7 +192,7 @@ public class TransactionController {
             }
             
         } catch (SQLException e) {
-            System.err.println("❌ Error getting revenue by transaction type: " + e.getMessage());
+            System.err.println("Error getting revenue by transaction type: " + e.getMessage());
         }
         
         return revenueMap;

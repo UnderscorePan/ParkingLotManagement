@@ -22,10 +22,18 @@ import com.parkingLot.models.fines.ProgressiveFineStrategy;
 public class FineController {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static FineController instance;
     private FineStrategy currentStrategy;
 
     public FineController() {
         this.currentStrategy = new FixedFineStrategy();
+    }
+
+    public static FineController getInstance() {
+        if (instance == null) {
+            instance = new FineController();
+        }
+        return instance;
     }
 
     public void setFineScheme(FineScheme scheme) {
@@ -114,7 +122,7 @@ public class FineController {
     public double getTotalUnpaidFines(String licensePlate) {
         List<Fine> fines = getUnpaidFines(licensePlate);
         double total = fines.stream().mapToDouble(Fine::getAmount).sum();
-        System.out.println("🔍 Checking unpaid fines for: " + licensePlate + " → Found " + fines.size() + " fine(s), Total: RM " + total);
+        System.out.println("Checking unpaid fines for: " + licensePlate + " → Found " + fines.size() + " fine(s), Total: RM " + total);
         return total;
     }
 

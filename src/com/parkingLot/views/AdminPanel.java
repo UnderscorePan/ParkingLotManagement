@@ -422,6 +422,16 @@ public class AdminPanel extends JPanel {
                     return;
                 }
 
+                // Check if this license plate already has a reserved spot
+                if (type == SpotType.RESERVED && spotController.hasReservedSpot(reservedPlate)) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "License plate " + reservedPlate + " already has a reserved spot!\n" +
+                        "Each vehicle can only have ONE reserved spot.",
+                        "Duplicate Reservation",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 // Generate spot ID
                 String spotId = String.format("F%d-%s-%s%d", floor, type.toString(), row, spotNum);
 
@@ -451,8 +461,12 @@ public class AdminPanel extends JPanel {
                     dialog.dispose();
                     loadAllData();
                 } else {
+                    String errorMsg = "Failed to add spot.";
+                    if (type == SpotType.RESERVED) {
+                        errorMsg += "\nPossible reason: License plate " + reservedPlate + " already has a reserved spot.";
+                    }
                     JOptionPane.showMessageDialog(dialog,
-                        "Failed to add spot. Check console for errors.",
+                        errorMsg,
                         "Error",
                         JOptionPane.ERROR_MESSAGE);
                 }
@@ -558,7 +572,7 @@ public class AdminPanel extends JPanel {
         // Show confirmation dialog with warning
         int confirm = JOptionPane.showConfirmDialog(
             this,
-            "⚠️ WARNING: This will DELETE ALL data from the database!\n\n" +
+            "WARNING: This will DELETE ALL data from the database!\n\n" +
             "This includes:\n" +
             "• All parking spots\n" +
             "• All vehicles\n" +
@@ -624,7 +638,7 @@ public class AdminPanel extends JPanel {
             );
             
         } catch (Exception e) {
-            System.err.println("❌ Error clearing database: " + e.getMessage());
+            System.err.println("Error clearing database: " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(
                 this,
@@ -710,13 +724,13 @@ public class AdminPanel extends JPanel {
     }
 
     private String getRateForType(String type) {
-        switch (type) {
-            case "COMPACT": return "RM 2.00/hr";
-            case "REGULAR": return "RM 5.00/hr";
-            case "HANDICAP": return "RM 2.00/hr";
-            case "RESERVED": return "RM 10.00/hr";
-            default: return "RM 5.00/hr";
-        }
+        return switch (type) {
+            case "COMPACT" -> "RM 2.00/hr";
+            case "REGULAR" -> "RM 5.00/hr";
+            case "HANDICAP" -> "RM 2.00/hr";
+            case "RESERVED" -> "RM 10.00/hr";
+            default -> "RM 5.00/hr";
+        };
     }
 
     private String calculateDuration(String entryTimeStr) {
