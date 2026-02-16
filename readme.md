@@ -13,143 +13,128 @@ CCP6224 - Object-Oriented Analysis and Design
 
 ---
 
-### Base Package
-
-All packages use the base: `com.parkingLot`
-
-### Required Packages
-
-Create these packages in your IntelliJ project (right-click `src` → New → Package):
-
-```
-com.parkingLot.models
-com.parkingLot.models.tests
-com.parkingLot.models.vehicles
-com.parkingLot.models.spots
-com.parkingLot.models.fines
-com.parkingLot.controllers
-com.parkingLot.views
-com.parkingLot.database
-com.parkingLot.utils
-
-```
-
----
-
-## Packages
-
-- `models/`: Your core classes (ParkingLot, Floor, Vehicle, etc.)
-- `vehicles/`: Vehicle-related classes (Car, Motorcycle, SUV, etc.)
-- `spots/`: Spot-related classes
-- `fines/`: Fine calculation strategies
-- `controllers/`: Business logic between GUI and models
-- `views/`: Swing GUI classes
-- `database/`: SQLite connection and queries
-- `utils/`: Helper classes (date calculations, ID generation, etc.)
-- `tests/`: For testing all modules without GUI
-
----
-
-## Design Pattern
-
-- **Composite Pattern**: Used for parking lot structure hierarchy
-
----
-
-## Plugins and libraries to use
-
-(These are from IntelliJ IDEA Community Edition)
-
-- Database Navigator
-- PlantUML4IDEA (requires graphviz to render)
-- SQLite JDBC driver (needed for SQLite)
-- SwingUI Designer (Important)
-- SimpleSqliteBrowser (Important)
-
-## Notes
-
-- String url = "jdbc:sqlite:database/parking_lot.db"; // connection string
-
 ## Features
 
-- [ ] Multi-level parking lot structure
-- [ ] Vehicle entry/exit management
-- [ ] Fine calculation (3 schemes)
-- [ ] Payment processing
-- [ ] Admin and reporting panels
+- Multi-level parking lot structure
+- Vehicle entry/exit management
+- Fine calculation (3 schemes: Fixed, Hourly, Progressive)
+- Payment processing
+- Admin and reporting panels
 
+---
 
-## Maven Quick Start Guide
+## Technology Stack
 
-## Prerequisites
-- Java 17 or higher
-- Maven 3.6+ installed
+- **Language**: Java 17
+- **Build Tool**: Maven 3.6+
+- **Database**: SQLite 3.47.1.0
+- **GUI Framework**: Java Swing
 
-## Common Maven Commands
-
-### 1. Clean and Compile
-```bash
-mvn clean compile
-```
-Removes old build files and compiles all source code.
-
-### 2. Run Tests
-```bash
-# Run the fine system test
-mvn exec:java -Dexec.mainClass="com.parkingLot.tests.FineTester"
-
-# Run vehicle test
-mvn exec:java -Dexec.mainClass="com.parkingLot.tests.VehicleTester"
-
-# Run main application
-mvn exec:java -Dexec.mainClass="com.parkingLot.Main"
-```
-
-### 3. Package JAR
-```bash
-mvn clean package
-```
-Creates executable JAR in `target/` directory.
-
-### 4. Clean Build Directory
-```bash
-mvn clean
-```
+---
 
 ## Project Structure
+
 ```
 ParkingLotManagement/
 ├── pom.xml                    # Maven configuration
 ├── src/                       # Source code
 │   └── com/parkingLot/
-│       ├── Main.java
-│       ├── models/
-│       ├── controllers/
-│       ├── views/
-│       ├── database/
-│       ├── utils/
-│       └── tests/
+│       ├── models/           # Core classes (ParkingLot, Floor, Vehicle, etc.)
+│       ├── controllers/      # Business logic layer
+│       ├── views/            # Swing GUI classes
+│       ├── database/         # SQLite connection and queries
+│       └── utils/            # Helper classes (ID generation, builders, etc.)
 ├── target/                    # Compiled output (auto-generated)
-└── lib/                       # Old manual JAR (can be removed)
+└── lib/                       # Legacy JARs (no longer needed)
 ```
 
-## Dependencies
-All dependencies are automatically downloaded by Maven:
-- **SQLite JDBC 3.47.1.0** - Database driver
+---
 
-## First Time Setup
-1. Open terminal in project directory
-2. Run: `mvn clean compile`
-3. Maven will download all dependencies
-4. Ready to develop!
+## Quick Start
 
-## IntelliJ IDEA Integration
-- IntelliJ automatically detects `pom.xml`
-- Click "Import" when prompted
-- All dependencies will be configured automatically
-- Use "Maven" tab on right side for commands
+### Prerequisites
+- Java 17 or higher installed
+- Maven 3.6+ installed
+
+### Build the Application
+
+```bash
+# Clean and compile
+mvn clean compile
+
+# Create executable JAR with all dependencies
+mvn clean package
+```
+
+This will create `ParkingLotManagement.jar` in the `target/` directory.
+
+### Run the Application
+
+```bash
+# Run directly with Maven
+mvn exec:java -Dexec.mainClass="com.parkingLot.views.MainFrame"
+
+# Or run the compiled JAR
+java -jar target/ParkingLotManagement.jar
+```
+
+---
+
+## Design Patterns
+
+- **Composite Pattern**: Used for parking lot structure hierarchy (ParkingLot → Floor → ParkingSpot)
+- **Strategy Pattern**: Used for fine calculation schemes (Fixed, Hourly, Progressive)
+
+---
+
+## Development
+
+### Package Structure
+
+All packages use the base: `com.parkingLot`
+
+- `models/`: Core domain classes
+  - `vehicles/`: Vehicle types (Car, Motorcycle, SUV, etc.)
+  - `spots/`: Spot-related classes and enums
+  - `fines/`: Fine calculation strategies
+  - `components/`: Composite pattern components
+- `controllers/`: Business logic controllers
+- `views/`: Swing GUI panels and frames
+- `database/`: SQLite connection and schema
+- `utils/`: Utility classes
+
+### Database
+
+- **Connection String**: `jdbc:sqlite:src/com/parkingLot/database/parking_lot.db`
+- Database is automatically initialized on first run
+
+---
+
+## Maven Commands Reference
+
+```bash
+# Clean build directory
+mvn clean
+
+# Compile source code
+mvn compile
+
+# Package into executable JAR
+mvn package
+
+# Clean and package
+mvn clean package
+
+# Run application
+mvn exec:java -Dexec.mainClass="com.parkingLot.views.MainFrame"
+```
+
+---
 
 ## Notes
-- The `lib/` folder with manual JARs is no longer needed
-- Maven stores dependencies in `~/.m2/repository/`
-- `target/` folder is ignored by git (build output)
+
+- All dependencies are automatically managed by Maven
+- The `target/` directory is ignored by git
+- Maven dependencies are cached in `~/.m2/repository/`
+- The application requires Java 17 or higher to run
+
