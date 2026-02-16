@@ -8,15 +8,13 @@ public class Fine {
     private double amount;
     private boolean isPaid;
     private LocalDateTime issueDate;
-    private String reason;
 
-    public Fine(String fineId, String licensePlate, double amount, LocalDateTime issueDate, String reason) {
+    public Fine(String fineId, String licensePlate, double amount, LocalDateTime issueDate) {
         this.fineId = fineId;
         this.licensePlate = licensePlate;
         this.amount = amount;
         this.isPaid = false;
         this.issueDate = issueDate;
-        this.reason = reason;
     }
 
     public void paidFine() {
@@ -37,8 +35,5 @@ public class Fine {
     }
     public LocalDateTime getIssueDate() {
         return issueDate;
-    }
-    public String getReason() {
-        return reason;
     }
 }

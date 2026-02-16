@@ -13,12 +13,12 @@ public class databaseConnection {
         try {
             Class.forName("org.sqlite.JDBC");
             conn = DriverManager.getConnection(URL);
-            System.out.println("✅ Database Connected Successfully!");
+            System.out.println("Database Connected Successfully!");
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ Error: SQLite Driver not found! Did you reload Maven?");
+            System.err.println("Error: SQLite Driver not found! Did you reload Maven?");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("❌ Error: Connection failed! " + e.getMessage());
+            System.err.println("Error: Connection failed! " + e.getMessage());
             e.printStackTrace();
         }
         return conn;
@@ -30,14 +30,13 @@ public class databaseConnection {
             
             stmt.execute("CREATE TABLE IF NOT EXISTS vehicles (" +
                     "plate_number TEXT PRIMARY KEY, " +
-                    "vehicle_type TEXT, " +
-                    "isVip INTEGER DEFAULT 0)");
-            
+                    "vehicle_type TEXT)");
+
             stmt.execute("CREATE TABLE IF NOT EXISTS fines (" +
                     "fine_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "plate_number TEXT NOT NULL, " +
                     "fine_amount REAL NOT NULL, " +
-                    "fine_reason TEXT, " +
+                    "fine_type TEXT, " +
                     "is_paid INTEGER DEFAULT 0, " +
                     "fine_date TEXT, " +
                     "FOREIGN KEY (plate_number) REFERENCES vehicles(plate_number))");
@@ -57,11 +56,12 @@ public class databaseConnection {
                     "spot_id TEXT PRIMARY KEY, " +
                     "lot_id TEXT, " +
                     "floor_number INTEGER, " +
-                    "row_number TEXT, " +
+                    "row_number INTEGER, " +
                     "spot_number INTEGER, " +
                     "spot_type TEXT, " +
                     "status INTEGER DEFAULT 0, " +
                     "current_vehicle_plate TEXT, " +
+                    "reserved_for_plate TEXT, " +
                     "FOREIGN KEY (lot_id) REFERENCES parking_lots(lot_id), " +
                     "FOREIGN KEY (spot_type) REFERENCES parking_rates(spot_type))");
             
@@ -82,7 +82,62 @@ public class databaseConnection {
                     "transaction_date TEXT NOT NULL, " +
                     "FOREIGN KEY (plate_number) REFERENCES vehicles(plate_number))");
             
-            System.out.println("✅ Database tables initialized successfully!");
+            System.out.println("Database tables initialized successfully!");
+
+            migrateDatabaseSchema(conn);
+            
+            initializeDefaultParkingLot(conn);
+        }
+    }
+    
+    private static void initializeDefaultParkingLot(Connection conn) throws SQLException {
+        // Check if default parking lot exists
+        String checkSql = "SELECT COUNT(*) FROM parking_lots WHERE lot_id = 'LOT-001'";
+        try (Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery(checkSql)) {
+            
+            if (rs.next() && rs.getInt(1) == 0) {
+                String insertSql = "INSERT INTO parking_lots (lot_id, name, type, total_levels) " +
+                                 "VALUES ('LOT-001', 'Main Parking Lot', 'Multi-Level', 10)";
+                stmt.execute(insertSql);
+                System.out.println("Default parking lot (LOT-001) initialized");
+            }
+        }
+    }
+
+    private static void migrateDatabaseSchema(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            try {
+                stmt.execute("SELECT reserved_for_plate FROM parking_spots LIMIT 1");
+            } catch (SQLException e) {
+                System.out.println("Migrating: Adding reserved_for_plate to parking_spots...");
+                stmt.execute("ALTER TABLE parking_spots ADD COLUMN reserved_for_plate TEXT");
+                System.out.println("Migration complete: reserved_for_plate added");
+            }
+            
+            try {
+                stmt.execute("SELECT parking_fee FROM transactions LIMIT 1");
+            } catch (SQLException e) {
+                System.out.println("Migrating: Adding parking_fee to transactions...");
+                stmt.execute("ALTER TABLE transactions ADD COLUMN parking_fee REAL DEFAULT 0");
+                System.out.println("Migration complete: parking_fee added");
+            }
+            
+            try {
+                stmt.execute("SELECT fine_amount FROM transactions LIMIT 1");
+            } catch (SQLException e) {
+                System.out.println("Migrating: Adding fine_amount to transactions...");
+                stmt.execute("ALTER TABLE transactions ADD COLUMN fine_amount REAL DEFAULT 0");
+                System.out.println("Migration complete: fine_amount added");
+            }
+            
+            try {
+                stmt.execute("SELECT fine_type FROM fines LIMIT 1");
+            } catch (SQLException e) {
+                System.out.println("Migrating: Adding fine_type to fines...");
+                stmt.execute("ALTER TABLE fines ADD COLUMN fine_type TEXT DEFAULT 'Fixed Fine Scheme'");
+                System.out.println("Migration complete: fine_type added");
+            }
         }
     }
     

@@ -50,6 +50,10 @@ public class ParkingSpot implements ParkingComponent {
         this.status = SpotStatus.AVAILABLE;
     }
 
+    public void setStatus(SpotStatus status) {
+        this.status = status;
+    }
+
     public double getEffectiveRate(Vehicle vehicle) {
         if (vehicle.getType() == VehicleType.HANDICAP_VEHICLE && this.spotType == SpotType.HANDICAP) {
             return 0.0;
@@ -92,7 +96,6 @@ public class ParkingSpot implements ParkingComponent {
         return hourlyRate;
     }
 
-    // ============ COMPOSITE INTERFACE IMPLEMENTATIONS ============
     @Override
     public List<ParkingSpot> getAvailableSpots() {
         List<ParkingSpot> result = new ArrayList<>();
@@ -104,13 +107,12 @@ public class ParkingSpot implements ParkingComponent {
 
     @Override
     public double getOccupancyRate() {
-        // Leaf node: either 0% (available) or 100% (occupied)
         return this.isAvailable() ? 0.0 : 100.0;
     }
 
     @Override
     public int getTotalSpots() {
-        return 1; // Leaf node always has exactly 1 spot
+        return 1;
     }
 
     @Override
@@ -120,6 +122,6 @@ public class ParkingSpot implements ParkingComponent {
 
     @Override
     public boolean isLeaf() {
-        return true; // ParkingSpot is always a leaf node
+        return true;
     }
 }

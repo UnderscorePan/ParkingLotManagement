@@ -41,14 +41,13 @@ public class FineCalculations {
     }
 
     public static Fine createFineForOverstay(String licensePlate, FineStrategy strategy,
-                                             LocalDateTime entryTime, LocalDateTime exitTime,
-                                             String reason) {
+                                             LocalDateTime entryTime, LocalDateTime exitTime) {
         double amount = calculateFineAmount(strategy, entryTime, exitTime);
         if (amount <= 0) {
             return null;
         }
 
         String fineId = generateFineId(licensePlate, exitTime);
-        return new Fine(fineId, licensePlate, amount, exitTime, reason);
+        return new Fine(fineId, licensePlate, amount, exitTime);
     }
 }
